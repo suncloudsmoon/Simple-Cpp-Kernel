@@ -2,6 +2,8 @@
 #define LIB_ZSTRING_HPP
 
 #include <stddef.h>
+#include <lib/zutil.hpp>
+#include <lib/zmem.hpp>
 
 namespace zl {
 	struct strdup_info {
@@ -26,7 +28,7 @@ namespace zl {
 
 	class string {
 		public:
-			string();
+			string(size_t init_size = 10);
 			string(const char *str_ptr);
 			string(const string &other);
 			string(string &&other);
@@ -41,8 +43,8 @@ namespace zl {
 			size_t length() const {
 				return len;
 			}
-			// do it like the std::string operator=(std::nullptr_t) = delete (C++23)
-			string& operator=(nullptr) = delete;
+			// TODO: do it like the std::string operator=(std::nullptr_t) = delete (C++23)
+			// string& operator=(nullptr) = delete;
 			string& operator=(const char *other);
 			string& operator=(const string &other);
 			string& operator=(string &&other);
@@ -60,12 +62,15 @@ namespace zl {
 			bool operator!=(const string &other) const;
 
 		private:
+			unexpected<os::blk> auto_realloc(size_t add_num);
 			bool is_usable;
 			char *data;
 			size_t curr_index;
 			size_t len;
 			char null_dat = 0;
 	};
+
+	expected<string> itoa(int num);
 }
 
 #endif /* LIB_ZSTRING_HPP */

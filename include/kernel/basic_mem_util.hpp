@@ -2,12 +2,31 @@
 #define KERNEL_BASIC_MEM_UTIL
 
 #include <stddef.h>
+#include <lib/zutil.hpp>
 
-constexpr size_t OS_ALLOC_ALIGNMENT{8};
-
-extern "C" void os_mem_util_init();
-extern "C" void* os_alloc(size_t size, size_t *aligned_size_res);
-extern "C" void* os_realloc(void *src, size_t size, size_t *aligned_size_res);
-extern "C" int os_free(void *ptr);
+namespace os {	
+	constexpr size_t ALLOC_ALIGNMENT{8};
+	enum {
+		ALLOC_SUCCESS = 0,
+		ALLOC_INVALID_SIZE = -1,
+		ALLOC_MEM_ERR = -2,
+		ALLOC_TRACKER_FAILURE = -3
+	};
+	enum {
+		REALLOC_SUCCESS = 0,
+		REALLOC_INVALID_ARG = -1,
+		REALLOC_NULL_MALLOC = -2,
+		REALLOC_MEMCPY_FAILURE = -3
+	};
+	struct blk {
+		blk(void *pointer = nullptr, size_t length = 0) : ptr(pointer), len(length) {}
+		void *ptr;
+		size_t len;
+	};
+	void mem_init();
+	zl::expected<blk> alloc(size_t size);
+	zl::expected<blk> realloc(void *src, size_t size);
+	bool free(void *ptr);
+}
 
 #endif /* KERNEL_BASIC_MEM_UTIL */

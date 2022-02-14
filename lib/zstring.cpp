@@ -1,19 +1,20 @@
 #include <lib/zstring.hpp>
-#include <lib/zmem.hpp>
 
 namespace zl {
 	strdup_info strdup(const char *src) {
 		if (!src)
 			return {nullptr, 0};
 		size_t src_len = strlen(src);
-		char *new_str = static_cast<char*>(malloc(src_len));
-		if (!new_str)
+		auto res = malloc(src_len);
+		if (auto res = malloc(src_len)) {
+			if (!memcpy(static_cast<char*>((*res).ptr), src, src_len)) {
+				free((*res).ptr);
+				return {nullptr, 0};
+			}
+			return {static_cast<char*>((*res).ptr), (*res).len};
+		} else {
 			return {nullptr, 0};
-		if (!memcpy(new_str, src, src_len)) {
-			free(new_str);
-			return {nullptr, 0};
-		}
-		return {new_str, src_len};
+		}	
 	}
 
 	// REMINDER: Need to null terminate dest string
@@ -49,16 +50,16 @@ namespace zl {
 		return str1[index] == '\0';
 	}
 
-	string::string() : is_usable(true), data(nullptr), curr_index(0), len(0) {
-		constexpr size_t INIT_SIZE{10};
-		data = static_cast<char*>(malloc(INIT_SIZE));
-		if (!data) {
-			is_usable = false;
+	string::string(size_t init_size) : is_usable(true), data(nullptr), curr_index(0), len(0) {
+		if (!init_size)
 			return;
+		if (auto res = malloc(init_size)) {
+			char *data = static_cast<char*>((*res).ptr);
+			data[init_size - 1] = '\0';
+			len = (*res).len;
+		} else {
+			is_usable = false;
 		}
-		data[INIT_SIZE - 1] = '\0';
-		curr_index = 0;
-		len = INIT_SIZE;
 	}
 	string::string(const char *src) : is_usable(true), data(nullptr), curr_index(0), len(0) {
 		if (auto info = strdup(src)) {
@@ -94,18 +95,50 @@ namespace zl {
 		return new_str;
 	}
 
+	string& string::operator=(const char *other) {
+		if (!other)
+			return *this;
+		size_t other_len = strlen(other);
+		if (!auto_realloc(other_len + 1))
+			return *this;
+		if (strncpy(data, other, other_len))
+			curr_index = other_len + 1;
+		return *this;	
+	}
+	string& string::operator=(const string &other) {
+		if (!other.data || !other.is_usable)
+			return *this;
+		if (!auto_realloc(other.len))
+			return *this;
+		if (strncpy(data, other.data, other.len))
+			curr_index = len;
+		return *this;	
+	}
+	string& string::operator=(string &&other) {
+		free(data);
+		is_usable = other.is_usable;
+		data = other.data;
+		curr_index = other.curr_index;
+		len = other.len;
+
+		other.is_usable = false;
+		other.data = nullptr;
+		other.curr_index = 0;
+		other.len = 0;
+
+		return *this;
+	}
+
 	string::operator bool() { return is_usable; }
+	
 	char& string::operator[](size_t index) {
 		if (index >= len) return null_dat;
 		return data[index];
 	}
 
 	string& string::operator+=(char c) {
-		if (curr_index + 2 > len) {
-			void *ptr = realloc(data, curr_index + 2, &len);
-			if (!ptr)
-				return *this;
-		}
+		if (!auto_realloc(curr_index + 2))
+			return *this;
 		data[curr_index++] = c;
 		data[curr_index++] = '\0';	
 		return *this;
@@ -115,23 +148,15 @@ namespace zl {
 		if (!other)
 			return *this;
 		size_t other_len = strlen(other);
-		if (curr_index + other_len + 1 >= len) {
-			void *ptr = realloc(data, curr_index + other_len + 1, &len);
-			if (!ptr)
-				return *this;
-			data = static_cast<char*>(ptr);
-		}
+		if (!auto_realloc(other_len + 1))
+			return *this;
 		if (strncat(data, other, other_len))
 			curr_index += other_len;
 		return *this;
 	}
 	string& string::operator+=(const string &other) {
-		if (curr_index + other.curr_index + 1 >= len) {
-			void *ptr = realloc(data, curr_index + other.curr_index + 1, &len);
-			if (!ptr)
-				return *this;
-			data = static_cast<char*>(ptr);
-		}
+		if (!auto_realloc(other.curr_index + 1))
+			return *this;
 		if (strncat(data, other.c_str(), other.curr_index + 1))
 			curr_index += other.curr_index + 1;
 		return *this;
@@ -148,5 +173,19 @@ namespace zl {
 	}
 	bool string::operator!=(const string &other) const {
 		return !strequal(c_str(), other.c_str());
+	}
+
+	// Private member(s) of the class
+	unexpected<os::blk> string::auto_realloc(size_t add_num) {
+		if (curr_index + add_num + 1 >= len) {
+			if (auto res = malloc(curr_index + add_num + 1)) {
+				data = static_cast<char*>((*res).ptr);
+				len = (*res).len;
+				return nullptr;
+			} else {
+				return res;
+			}
+		}
+		return nullptr;
 	}
 }

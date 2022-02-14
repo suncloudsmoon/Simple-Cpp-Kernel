@@ -1,10 +1,10 @@
 #include <kernel/basic_io.hpp>
 
-unsigned int x{0};
-unsigned int y{0};
+unsigned int x{};
+unsigned int y{};
 
-unsigned int width{0};
-unsigned int height{0};
+unsigned int width{};
+unsigned int height{};
 
 extern "C" unsigned int os_vga_get_width() { return width; }
 extern "C" unsigned int os_vga_get_height() { return height; }
