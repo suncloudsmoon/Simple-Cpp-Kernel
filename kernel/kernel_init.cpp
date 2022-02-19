@@ -12,21 +12,32 @@ static zl::expected<char> something();
 
 extern "C" void main() {
 	config_os();
-	// if (auto res = zl::malloc(5 * sizeof(char*))) {
-	// 	char **data = static_cast<char**>((*res).ptr);
-	// 	data[0] = new char('a');
-	// 	data[1] = new char('b');
-	// 	zl::cout << *data[0] << zl::endl;
-	// 	zl::cout << *data[1] << zl::endl;
-
-	// 	// zl::cout << "Size: " << (char) ((1 * sizeof(char*)) + '0') << zl::endl;
-	// 	// zl::cout << "Size: " << (char) (( ((2) * sizeof(char*)) - (1 * sizeof(char*)) ) + '0') << zl::endl;
+	// zl::growing_array<char> arr;
+	// if (arr) {
+	// 	arr.add('a');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	arr.add('b');
+	// 	for (char c : arr)
+	// 		zl::cout << c << zl::endl;	
 	// }
-	zl::cout = zl::ostream();
-	zl::cout << "hello world!" << zl::endl;
+	if (auto res = zl::malloc(10 * sizeof(char*))) {
+		char **data = static_cast<char**>((*res).ptr);
+		size_t index{0};
+		for (char c = 'a'; c <= 'o'; c++)
+			data[index++] = new char(c);
+		for (int i = 0; i < index; i++)
+			zl::cout << *data[i] << zl::endl;
+	}
 }
 
 static void config_os() {
+	zl::cout = zl::ostream();
+	zl::cerr = zl::ostream();
 	os_vga_config_dimensions(80, 25);
 	os_vga_cls_screen();
     os::mem_init();

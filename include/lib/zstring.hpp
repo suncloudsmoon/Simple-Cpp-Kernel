@@ -15,11 +15,10 @@ namespace zl {
 	 * Length excluding null terminator
 	 */
 	inline constexpr size_t strlen(const char *str) {
-		if (!str)
-			return 0;
-		size_t index{0}, len{0};
-		while (str[index++]) { len++; }
-		return len;
+		if (!str) return 0;
+		size_t index{0};
+		while (str[index++]);
+		return index;
 	}
 	strdup_info strdup(const char *src);
 	bool strncat(char *dest, const char *src, size_t len);
@@ -35,6 +34,7 @@ namespace zl {
 			~string();
 
 			string substr(size_t start, size_t end);
+			char& at(size_t index);
 			
 			// Getters
 			const char* c_str() const {

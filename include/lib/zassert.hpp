@@ -1,5 +1,5 @@
-#ifndef LIB_ASSERT_HPP
-#define LIB_ASSERT_HPP
+#ifndef LIB_ZASSERT_HPP
+#define LIB_ZASSERT_HPP
 
 #define DEBUG
 
@@ -20,4 +20,4 @@ namespace zl {
 	}
 }
 
-#endif /* LIB_ASSERT_HPP */
+#endif /* LIB_ZASSERT_HPP */

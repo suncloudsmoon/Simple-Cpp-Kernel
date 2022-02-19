@@ -5,7 +5,6 @@
 #include <lib/zutil.hpp>
 
 namespace os {	
-	constexpr size_t ALLOC_ALIGNMENT{8};
 	enum {
 		ALLOC_SUCCESS = 0,
 		ALLOC_INVALID_SIZE = -1,

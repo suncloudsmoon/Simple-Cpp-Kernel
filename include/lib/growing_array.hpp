@@ -3,6 +3,7 @@
 
 #include <lib/zmem.hpp>
 #include <lib/zutil.hpp>
+#include <lib/zassert.hpp>
 
 namespace zl {
 	template<typename T>
@@ -127,6 +128,7 @@ namespace zl {
 				return arr[index];
 			}
 			T* operator[](size_t index) {
+				zl::assert(index < len, "[growing_array::operator[] error] -> index out of bounds!");
 				return arr[index];
 			}
 			bool add(const T &item) {
@@ -146,6 +148,7 @@ namespace zl {
 				return true;
 			}
 			bool add(T *item) {
+				zl::assert(item != nullptr, "[growing_array::add(T*) error] -> item pointer arg is null!");
 				if (!auto_realloc(1)) [[unlikely]]
 					return false;
 				arr[curr_index++] = item;
@@ -160,6 +163,7 @@ namespace zl {
 				return true;
 			}
 			void clear() {
+				zl::assert(arr != nullptr, "[growing_array::clear() error] -> string's char array is null!");
 				for (size_t i = 0; i < len; i++)
 					delete arr[i];
 				curr_index = 0;				

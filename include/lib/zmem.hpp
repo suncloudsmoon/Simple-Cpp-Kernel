@@ -2,6 +2,7 @@
 #define LIB_ZMEM_HPP
 
 #include <stddef.h>
+#include <stdint.h>
 #include <lib/zutil.hpp>
 #include <kernel/basic_mem_util.hpp>
 
@@ -34,8 +35,8 @@ namespace zl {
 			return false;
 
 		// Interesting... they cast void* to long* to do the copy operation (CPU accessing a data type that is at least long width)
-		long *dest_lon = reinterpret_cast<long*>(dest);
-		const long *src_lon = reinterpret_cast<const long*>(src);
+		int32_t *dest_lon = reinterpret_cast<int32_t*>(dest);
+		const int32_t *src_lon = reinterpret_cast<const int32_t*>(src);
 		
 		for (size_t i = 0; i < src_num_cpy; i++) 
 			dest_lon[i] = src_lon[i];
@@ -71,5 +72,14 @@ inline void operator delete[](void *ptr) {
 	zl::free(ptr);
 }
 
+// Placement new
+inline void* operator new(size_t size, void *ptr) {
+	return ptr; 
+}
+inline void* operator new[](size_t size, void *ptr) { 
+	return ptr; 
+}
+inline void operator delete(void *ptr1, void *ptr2) {}
+inline void operator delete[](void *ptr1, void *ptr2) {}
 
 #endif /* LIB_ZMEM_HPP */

@@ -1,4 +1,5 @@
 #include <lib/zstring.hpp>
+#include <lib/zassert.hpp>
 
 namespace zl {
 	strdup_info strdup(const char *src) {
@@ -91,8 +92,13 @@ namespace zl {
 	string string::substr(size_t start, size_t end) {
 		string new_str;
 		for (size_t i = start; i < end; i++)
-			new_str += string::operator[](i);
+			new_str += data[i];
 		return new_str;
+	}
+
+	char& string::at(size_t index) {
+		if (index >= len) return null_dat;
+		return data[index];
 	}
 
 	string& string::operator=(const char *other) {
@@ -130,9 +136,9 @@ namespace zl {
 	}
 
 	string::operator bool() { return is_usable; }
-	
+
 	char& string::operator[](size_t index) {
-		if (index >= len) return null_dat;
+		zl::assert(index < len, "[string::operator[] error] -> index out of bounds!");
 		return data[index];
 	}
 
