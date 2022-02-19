@@ -17,10 +17,31 @@
  * SOFTWARE.
  */
 
-#ifndef LIB_ZUITL_HPP
-#define LIB_ZUITL_HPP
+#include <drivers/vga.hpp>
 
-#include <lib/optional.hpp>
-#include <lib/expected.hpp>
-
-#endif /* LIB_ZUITL_HPP */
+namespace os {
+	namespace drivers {
+		namespace vga {
+			static unsigned int width, height;
+			void config_dimensions(unsigned int w, unsigned int h) {
+				width = w;
+				height = w;
+			}
+			unsigned int get_width() {
+				return width;
+			}
+			unsigned int get_height() {
+				return height;
+			}
+			void clear_screen() {
+				for (unsigned int y = 0; y < height; y++) {
+					for (unsigned int x = 0; x < width * 2; x += 2) {
+						auto pos = map_to_1D(x, y, width);
+						os_vga_ptr[pos] = '\0';
+						os_vga_ptr[pos + 1] = white;
+					}
+				}
+			}
+		}
+	}
+}

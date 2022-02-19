@@ -17,10 +17,42 @@
  * SOFTWARE.
  */
 
-#ifndef LIB_ZUITL_HPP
-#define LIB_ZUITL_HPP
+#ifndef DRIVERS_VGA_HPP
+#define DRIVERS_VGA_HPP
 
-#include <lib/optional.hpp>
-#include <lib/expected.hpp>
+namespace os {
+	namespace drivers {
+		namespace vga {
+			// Due to some unknown error, I had to make this a define!
+			#define os_vga_ptr reinterpret_cast<volatile char *>(0xB8000)
+			constexpr unsigned int SPACES_PER_TAB{4};
+			enum {
+				black = 0,
+				blue = 1,
+				green = 2,
+				cyan = 3,
+				red = 4,
+				purple = 5,
+				brown = 6,
+				gray = 7,
+				dark_gray = 8,
+				light_blue = 9,
+				light_green = 10,
+				light_cyan = 11,
+				light_red = 12,
+				light_purple = 13,
+				yellow = 14,
+				white = 15
+			};
+			constexpr unsigned int map_to_1D(unsigned int x, unsigned int y, unsigned int num_rows) {
+				return (y * num_rows) + x;
+			}
+			void config_dimensions(unsigned int w, unsigned int h);
+			unsigned int get_width();
+			unsigned int get_height();
+			void clear_screen();
+		}
+	}
+}
 
-#endif /* LIB_ZUITL_HPP */
+#endif /* DRIVERS_VGA_HPP */

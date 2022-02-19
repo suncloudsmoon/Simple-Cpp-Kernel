@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2022, suncloudsmoon and the Simple-Cpp-Kernel contributors.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include <kernel/basic_mem_util.hpp>
 #include <lib/zmem.hpp>
 #include <lib/zassert.hpp>
@@ -42,8 +61,33 @@ namespace os {
 			if (curr_item) {
 				curr_item->ptr = ptr;
 				size_t res;
-				curr_item = curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
+				curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
+				curr_item = list->next;
 				len++;
+				return true;
+			}
+			return false;
+		}
+
+		bool add_to_free_list(const blk &ptr) {
+			if (curr_item) {
+				free_curr_item->ptr = ptr;
+				size_t res;
+				free_curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
+				free_curr_item = free_list->next;
+				free_len++;
+				return true;
+			}
+			return false;
+		}
+
+		bool add_to_free_list(blk &&ptr) {
+			if (curr_item) {
+				free_curr_item->ptr = ptr;
+				size_t res;
+				free_curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
+				free_curr_item = free_list->next;
+				free_len++;
 				return true;
 			}
 			return false;
@@ -84,8 +128,7 @@ namespace os {
 
 	// Global Variables
 	static size_t curr_stack_location;
-	static alloc_tracker allocated_block_tracker{nullptr};
-	static alloc_tracker free_block_tracker{nullptr};
+	static alloc_tracker *tracker;
 
 	static void* simple_alloc(size_t size, size_t &aligned_size_res) {
 		if (!size) return nullptr;
@@ -106,7 +149,8 @@ namespace os {
 			return nullptr;
 		}
 		if (!zl::memcpy(new_ptr, src, size)) {
-			free_block_tracker.add(new_ptr, aligned_size_res);
+			if (tracker) tracker->add_to_free_list(blk(new_ptr, aligned_size_res));
+			err_func = REALLOC_MEMCPY_FAILURE;
 			return nullptr;
 		}
 		return new_ptr;
@@ -117,8 +161,9 @@ namespace os {
 	*/
 	void mem_init() {
 		curr_stack_location = 0x9770;
-		free_block_tracker = alloc_tracker{nullptr};
-		allocated_block_tracker = alloc_tracker{&free_block_tracker};
+		size_t res;
+		void *ptr = simple_alloc(sizeof(alloc_tracker), res);
+		tracker = new(ptr) alloc_tracker(); // placement new for our tracker
 	}
 
 	zl::expected<blk> alloc(size_t size) {
@@ -128,9 +173,7 @@ namespace os {
 		void *ptr = simple_alloc(size, aligned_res);
 		if (!ptr)
 			return {nullptr, "[os::alloc() error] -> No memory allocation due to unknown error!", ALLOC_MEM_ERR};
-		
-		if (!allocated_block_tracker.add(ptr, aligned_res)) {
-			free_block_tracker.add(ptr, aligned_res);
+		if (tracker && !tracker->add(blk(ptr, aligned_res))) {
 			return {nullptr, "[os::alloc() error] -> Unable to add allocated memory block to respective tracker!", ALLOC_TRACKER_FAILURE};
 		}
 		return {{ptr, aligned_res}};
@@ -151,6 +194,6 @@ namespace os {
 
 	bool free(void *ptr) {
 		/* automatically removes from the allocated block and adds it to the free block tracker */
-		return allocated_block_tracker.remove(ptr);
+		return (tracker && ptr) ? tracker->remove(ptr) : false;
 	}
 }
