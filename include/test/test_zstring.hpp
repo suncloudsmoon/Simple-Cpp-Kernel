@@ -17,29 +17,34 @@
  * SOFTWARE.
  */
 
-#include <kernel/kernel_init.hpp>
-#include <lib/zio.hpp>
-#include <lib/zmem.hpp>
+#ifndef TEST_TEST_ZSTRING_HPP
+#define TEST_TEST_ZSTRING_HPP
+
+#include <lib/zassert.hpp>
+
+#ifdef DEBUG
+#include <lib/testunit.hpp>
 #include <lib/zstring.hpp>
 
-// OS stuff
-#include <kernel/basic_io.hpp>
+namespace zl {
+	namespace test {
+		class test_string : public zl::unit_test {
+			public:
+				bool test() override {
+					zl::string test1("hello");
+					zl::assert(test1.c_str() != nullptr, "[test_string, test1 failed] => nullptr");
+					test1.append("hello");
+					zl::assert(test1.length() == zl::strlen("hello") * 2, "test_string, test1 failed] => length is invalid!");
 
-// Testing the drivers
-#include <drivers/instr.hpp>
-#include <lib/stack.hpp>
-
-// Unit testing
-#include <test/test_zstring.hpp>
-
-static void config_os();
-
-extern "C" void main() {
-	config_os();
+					zl::string test2;
+					zl::assert(test2.c_str() != nullptr, "[test_string, test2 failed] => nullptr");
+					test2.append("hi");
+					zl::assert(test2.length() == zl::strlen("hi"), "[test_string, test2 failed] => length is invalid!");
+					return true;
+				}
+		};
+	}
 }
+#endif
 
-static void config_os() {
-	os::config_basic_io(80, 25);
-	zl::config_zio();
-    os::mem_init();
-}
+#endif /* TEST_TEST_ZSTRING_HPP */

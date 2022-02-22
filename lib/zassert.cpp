@@ -17,29 +17,15 @@
  * SOFTWARE.
  */
 
-#include <kernel/kernel_init.hpp>
+#include <lib/zassert.hpp>
 #include <lib/zio.hpp>
-#include <lib/zmem.hpp>
-#include <lib/zstring.hpp>
 
-// OS stuff
-#include <kernel/basic_io.hpp>
-
-// Testing the drivers
-#include <drivers/instr.hpp>
-#include <lib/stack.hpp>
-
-// Unit testing
-#include <test/test_zstring.hpp>
-
-static void config_os();
-
-extern "C" void main() {
-	config_os();
-}
-
-static void config_os() {
-	os::config_basic_io(80, 25);
-	zl::config_zio();
-    os::mem_init();
+namespace zl {
+#ifdef DEBUG	
+	void assert(bool condition, const char *message) {
+		if (!condition)
+			zl::cout << "Assertion Failed: " << message << zl::endl;
+	}
+	asm("hlt");
+#endif
 }

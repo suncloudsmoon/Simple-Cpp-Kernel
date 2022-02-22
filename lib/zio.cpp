@@ -27,13 +27,36 @@ namespace zl {
 		color = type;
 		return *this;
 	}
+
 	ostream& ostream::operator<<(bool b) {
-		if (b)
-			operator<<("true");
-		else
-			operator<<("false");
+		(b) ? operator<<("true") : operator<<("false");
 		return *this;
 	}
+	ostream& ostream::operator<<(unsigned short a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+	ostream& ostream::operator<<(short a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+	ostream& ostream::operator<<(unsigned int a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+	ostream& ostream::operator<<(int a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+	ostream& ostream::operator<<(unsigned long a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+	ostream& ostream::operator<<(long a) {
+		operator<<(*zl::itoa(a));
+		return *this;
+	}
+
 	ostream& ostream::operator<<(char c) {
 		os::putch(c, color.get_color_num());
 		return *this;

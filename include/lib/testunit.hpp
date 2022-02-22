@@ -17,29 +17,24 @@
  * SOFTWARE.
  */
 
-#include <kernel/kernel_init.hpp>
-#include <lib/zio.hpp>
-#include <lib/zmem.hpp>
-#include <lib/zstring.hpp>
+#ifndef LIB_TESTUNIT_HPP
+#define LIB_TESTUNIT_HPP
 
-// OS stuff
-#include <kernel/basic_io.hpp>
+#include <lib/zassert.hpp>
 
-// Testing the drivers
-#include <drivers/instr.hpp>
-#include <lib/stack.hpp>
-
-// Unit testing
-#include <test/test_zstring.hpp>
-
-static void config_os();
-
-extern "C" void main() {
-	config_os();
+namespace zl {
+#ifdef DEBUG
+	class unit_test {
+		public:
+			unit_test(int arg = 0) : arg_num(arg) {}
+			virtual ~unit_test() {}
+			virtual bool test() = 0;
+		protected:
+			int get_arg_num() const { return arg_num; }
+		private:
+			int arg_num;	
+	};
+#endif
 }
 
-static void config_os() {
-	os::config_basic_io(80, 25);
-	zl::config_zio();
-    os::mem_init();
-}
+#endif /* LIB_TESTUNIT_HPP */

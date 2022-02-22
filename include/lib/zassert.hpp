@@ -20,23 +20,20 @@
 #ifndef LIB_ZASSERT_HPP
 #define LIB_ZASSERT_HPP
 
-#define DEBUG
+//#define DEBUG
 
-#ifdef DEBUG
-#include <lib/zio.hpp>
-#else
+#ifndef DEBUG
 #define RELEASE
 #endif
 
 namespace zl {
-	inline constexpr void assert(bool condition, const char *message = "") {
-#ifdef DEBUG		
-		if (!condition)
-			zl::cout << "Assertion Failed: " << message << zl::endl;
+#ifdef DEBUG
+	void assert(bool condition, const char *message = "");
 #else
+	inline void assert(bool condition, const char *message = "") {
 		(void) 0;
-#endif		
 	}
+#endif	
 }
 
 #endif /* LIB_ZASSERT_HPP */

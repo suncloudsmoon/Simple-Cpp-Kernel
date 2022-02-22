@@ -20,6 +20,7 @@
 #ifndef LIB_ZIO_HPP
 #define LIB_ZIO_HPP
 
+#include <stdint.h>
 #include <drivers/vga.hpp>
 #include <lib/zstring.hpp>
 
@@ -36,7 +37,15 @@ namespace zl {
 	struct ostream {
 		ostream(color_type type = os::drivers::vga::white) : color(type) {}
 		ostream& operator<<(color_type type);
+		
 		ostream& operator<<(bool b);
+		ostream& operator<<(unsigned short a);
+		ostream& operator<<(short a);
+		ostream& operator<<(unsigned int a);
+		ostream& operator<<(int a);
+		ostream& operator<<(unsigned long a);
+		ostream& operator<<(long a);
+		
 		ostream& operator<<(char c);
 		ostream& operator<<(const char *str);
 		ostream& operator<<(const zl::string &str);

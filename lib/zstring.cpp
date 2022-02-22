@@ -23,21 +23,19 @@
 namespace zl {
 	strdup_info strdup(const char *src) {
 		if (!src)
-			return {nullptr, 0};
+			return {};
 		size_t src_len = strlen(src);
-		auto res = malloc(src_len);
 		if (auto res = malloc(src_len)) {
 			if (!memcpy(static_cast<char*>((*res).ptr), src, src_len)) {
 				free((*res).ptr);
-				return {nullptr, 0};
+				return {};
 			}
-			return {static_cast<char*>((*res).ptr), (*res).len};
+			return {static_cast<char*>((*res).ptr), src_len, (*res).len};
 		} else {
-			return {nullptr, 0};
+			return {};
 		}	
 	}
 
-	// REMINDER: Need to null terminate dest string
 	bool strncat(char *dest, const char *src, size_t len) {
 		if (!dest || !src || !len) 
 			return false;
@@ -70,42 +68,107 @@ namespace zl {
 		return str1[index] == '\0';
 	}
 
-	string::string(size_t init_size) : is_usable(true), data(nullptr), curr_index(0), len(0) {
+	string::string(size_t init_size) : data(nullptr), curr_index(0), len(0) {
 		if (!init_size)
 			return;
 		if (auto res = malloc(init_size)) {
-			char *data = static_cast<char*>((*res).ptr);
-			data[init_size - 1] = '\0';
+			data = static_cast<char*>((*res).ptr);
+			data[0] = '\0';
 			len = (*res).len;
 		} else {
-			is_usable = false;
+			free((*res).ptr);
+			zl::assert(false, "[zl::string::string error] -> unable to allocate memory for string!");
 		}
 	}
-	string::string(const char *src) : is_usable(true), data(nullptr), curr_index(0), len(0) {
+	string::string(const char *src) : data(nullptr), curr_index(0), len(0) {
 		if (auto info = strdup(src)) {
 			data = info.buf;
-			len = info.len;
+			curr_index = info.str_len;
+			len = info.buf_len;
 		}
 	}
-	string::string(const string &other) : is_usable(true), data(nullptr), curr_index(0), len(0) {
+	string::string(const string &other) : data(nullptr), curr_index(0), len(0) {
 		if (auto info = strdup(other.c_str())) {
 			data = info.buf;
-			len = info.len;
+			len = info.buf_len;
 		}
 	}
 	string::string(string &&other) {
-		is_usable = other.is_usable;
 		data = other.data;
 		curr_index = other.curr_index;
 		len = other.len;
 
-		other.is_usable = false;
 		other.data = nullptr;
 		other.curr_index = 0;
 		other.len = 0;
 	}
 	string::~string() {
 		free(data);
+	}
+
+	bool string::append(char c) {
+		if (!auto_realloc(curr_index + 2))
+			return false;
+		data[curr_index++] = c;
+		data[curr_index] = '\0';
+		return true;
+	}
+	bool string::append(const char *other) {
+		if (!other)
+			return false;
+		size_t other_len = strlen(other);
+		if (!auto_realloc(other_len + 1))
+			return false;
+		if (strncat(data, other, other_len))
+			curr_index += other_len;
+		return true;
+	}
+	bool string::append(const string &other) {
+		if (!other.c_str())
+			return false;
+		if (!auto_realloc(other.curr_index + 1))
+			return false;
+		if (strncat(data, other.c_str(), other.curr_index))
+			curr_index += other.curr_index;
+		return true;
+	}
+
+	bool string::equals(const char *other) const {
+		return strequal(c_str(), other);
+	}
+	bool string::equals(const string &other) const {
+		return strequal(c_str(), other.c_str());
+	}
+
+	bool string::set(const char *other) {
+		if (!other)
+			return false;
+		size_t other_len = strlen(other);
+		if (!auto_realloc(other_len + 1))
+			return false;
+		if (strncpy(data, other, other_len))
+			curr_index = other_len;
+		return true;
+	}
+	bool string::set(const string &other) {
+		if (!other.data)
+			return false;
+		if (!auto_realloc(other.len))
+			return false;
+		if (strncpy(data, other.data, other.len))
+			curr_index = other.curr_index;
+		return true;
+	}
+	bool string::set(string &&other) {
+		free(data);
+		data = other.data;
+		curr_index = other.curr_index;
+		len = other.len;
+
+		other.data = nullptr;
+		other.curr_index = 0;
+		other.len = 0;
+		return true;
 	}
 
 	string string::substr(size_t start, size_t end) {
@@ -115,89 +178,9 @@ namespace zl {
 		return new_str;
 	}
 
-	char& string::at(size_t index) {
-		if (index >= len) return null_dat;
+	expected<char> string::at(size_t index) {
+		if (index >= len) return {data[0], "[zl::string::at() error] -> index out of bounds!", -1};
 		return data[index];
-	}
-
-	string& string::operator=(const char *other) {
-		if (!other)
-			return *this;
-		size_t other_len = strlen(other);
-		if (!auto_realloc(other_len + 1))
-			return *this;
-		if (strncpy(data, other, other_len))
-			curr_index = other_len + 1;
-		return *this;	
-	}
-	string& string::operator=(const string &other) {
-		if (!other.data || !other.is_usable)
-			return *this;
-		if (!auto_realloc(other.len))
-			return *this;
-		if (strncpy(data, other.data, other.len))
-			curr_index = len;
-		return *this;	
-	}
-	string& string::operator=(string &&other) {
-		free(data);
-		is_usable = other.is_usable;
-		data = other.data;
-		curr_index = other.curr_index;
-		len = other.len;
-
-		other.is_usable = false;
-		other.data = nullptr;
-		other.curr_index = 0;
-		other.len = 0;
-
-		return *this;
-	}
-
-	string::operator bool() { return is_usable; }
-
-	char& string::operator[](size_t index) {
-		zl::assert(index < len, "[string::operator[] error] -> index out of bounds!");
-		return data[index];
-	}
-
-	string& string::operator+=(char c) {
-		if (!auto_realloc(curr_index + 2))
-			return *this;
-		data[curr_index++] = c;
-		data[curr_index++] = '\0';	
-		return *this;
-	}
-
-	string& string::operator+=(const char *other) {
-		if (!other)
-			return *this;
-		size_t other_len = strlen(other);
-		if (!auto_realloc(other_len + 1))
-			return *this;
-		if (strncat(data, other, other_len))
-			curr_index += other_len;
-		return *this;
-	}
-	string& string::operator+=(const string &other) {
-		if (!auto_realloc(other.curr_index + 1))
-			return *this;
-		if (strncat(data, other.c_str(), other.curr_index + 1))
-			curr_index += other.curr_index + 1;
-		return *this;
-	}
-
-	bool string::operator==(const char *other) const {
-		return strequal(c_str(), other);
-	}
-	bool string::operator==(const string &other) const {
-		return strequal(c_str(), other.c_str());
-	}
-	bool string::operator!=(const char *other) const {
-		return !strequal(c_str(), other);
-	}
-	bool string::operator!=(const string &other) const {
-		return !strequal(c_str(), other.c_str());
 	}
 
 	// Private member(s) of the class
