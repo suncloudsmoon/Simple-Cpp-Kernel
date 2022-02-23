@@ -159,7 +159,6 @@ namespace zl {
 				}
 				return true;
 			}
-		public:
 			bool add(size_t index, T &&item) {
 				T *new_obj = new T(item);
 				if (!add(index, new_obj)) {
@@ -221,10 +220,10 @@ namespace zl {
 			T** get_raw_arr() {
 				return arr;
 			}
-			size_t get_curr_len() {
+			size_t get_curr_len() const {
 				return curr_len;
 			}
-			size_t get_len() {
+			size_t get_len() const {
 				return len;
 			}
 			void set_raw_arr(T **other) {

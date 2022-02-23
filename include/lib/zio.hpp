@@ -22,7 +22,6 @@
 
 #include <stdint.h>
 #include <drivers/vga.hpp>
-#include <lib/zstring.hpp>
 
 namespace zl {
 	struct color_type {
@@ -32,10 +31,26 @@ namespace zl {
 		int color;
 	};
 	namespace color {
+		constexpr color_type black = os::drivers::vga::black;
+		constexpr color_type blue = os::drivers::vga::blue;
+		constexpr color_type green = os::drivers::vga::green;
+		constexpr color_type cyan = os::drivers::vga::cyan;
 		constexpr color_type red = os::drivers::vga::red;
+		constexpr color_type purple = os::drivers::vga::purple;
+		constexpr color_type brown = os::drivers::vga::brown;
+		constexpr color_type gray = os::drivers::vga::gray;
+		constexpr color_type dark_gray = os::drivers::vga::dark_gray;
+		constexpr color_type yellow = os::drivers::vga::yellow;
+		constexpr color_type white = os::drivers::vga::white;
+		
+		constexpr color_type light_blue = os::drivers::vga::light_blue;
+		constexpr color_type light_green = os::drivers::vga::light_green;
+		constexpr color_type light_cyan = os::drivers::vga::light_cyan;
+		constexpr color_type light_red = os::drivers::vga::light_red;
+		constexpr color_type light_purple = os::drivers::vga::light_purple;
 	}
 	struct ostream {
-		ostream(color_type type = os::drivers::vga::white) : color(type) {}
+		ostream(color_type type = color::white) : color(type) {}
 		ostream& operator<<(color_type type);
 		
 		ostream& operator<<(bool b);
@@ -48,7 +63,6 @@ namespace zl {
 		
 		ostream& operator<<(char c);
 		ostream& operator<<(const char *str);
-		ostream& operator<<(const zl::string &str);
 	private:
 		color_type color;
 	};

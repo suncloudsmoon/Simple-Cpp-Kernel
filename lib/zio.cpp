@@ -18,8 +18,10 @@
  */
 
 #include <stddef.h>
-#include <lib/zio.hpp>
 #include <kernel/basic_io.hpp>
+#include <lib/zio.hpp>
+#include <lib/zstring.hpp>
+#include <lib/zstringutil.hpp>
 
 namespace zl {
 	static size_t index;
@@ -29,32 +31,25 @@ namespace zl {
 	}
 
 	ostream& ostream::operator<<(bool b) {
-		(b) ? operator<<("true") : operator<<("false");
-		return *this;
+		return (b) ? operator<<("true") : operator<<("false");
 	}
 	ostream& ostream::operator<<(unsigned short a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 	ostream& ostream::operator<<(short a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 	ostream& ostream::operator<<(unsigned int a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 	ostream& ostream::operator<<(int a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 	ostream& ostream::operator<<(unsigned long a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 	ostream& ostream::operator<<(long a) {
-		operator<<(*zl::itoa(a));
-		return *this;
+		return operator<<(zl::itoa(a).get_val().c_str());
 	}
 
 	ostream& ostream::operator<<(char c) {
@@ -62,16 +57,9 @@ namespace zl {
 		return *this;
 	}
 	ostream& ostream::operator<<(const char* str) {
-		if (!str) {
-			operator<<("nullptr");
-			return *this;
-		}
+		if (!str) return operator<<("nullptr");
 		while (char c = str[index++]) { operator<<(c); }
-			return *this;
-	}
-
-	ostream& ostream::operator<<(const zl::string &str) {
-		return operator<<(str.c_str());
+		return *this;
 	}
 
 	ostream cout;

@@ -21,6 +21,7 @@
 #include <lib/zio.hpp>
 #include <lib/zmem.hpp>
 #include <lib/zstring.hpp>
+#include <lib/zstringutil.hpp>
 
 // OS stuff
 #include <kernel/basic_io.hpp>
@@ -36,6 +37,7 @@ static void config_os();
 
 extern "C" void main() {
 	config_os();
+	zl::cout << zl::strlen("hello");
 }
 
 static void config_os() {

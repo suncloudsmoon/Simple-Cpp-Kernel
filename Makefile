@@ -3,7 +3,7 @@ CC := i386-elf-c++
 LD := i386-elf-ld
 BIN_DIR = bin
 ALL_SOURCE_FILES := $(wildcard kernel/*.cpp) $(wildcard lib/*.cpp)
-ALL_OBJS := bin/kernel_entry.o bin/kernel_init.okernel bin/basic_io.okernel bin/basic_mem_util.okernel bin/zio.olib bin/zstring.olib bin/zassert.olib bin/vga.odriver bin/instr.oasmdriver
+ALL_OBJS := bin/kernel_entry.o bin/kernel_init.okernel bin/basic_io.okernel bin/basic_mem_util.okernel bin/zio.olib bin/zstring.olib bin/zstringutil.olib bin/zassert.olib bin/vga.odriver bin/instr.oasmdriver
 
 $(BIN_DIR)/os.bin: bin/boot.bin bin/kernel.bin bin/empty.bin
 	cat bin/boot.bin bin/kernel.bin bin/empty.bin > $@

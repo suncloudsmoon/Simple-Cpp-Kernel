@@ -20,7 +20,7 @@
 #ifndef LIB_ZASSERT_HPP
 #define LIB_ZASSERT_HPP
 
-//#define DEBUG
+#define DEBUG
 
 #ifndef DEBUG
 #define RELEASE

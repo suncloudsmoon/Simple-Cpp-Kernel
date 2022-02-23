@@ -24,30 +24,9 @@
 #include <lib/zutil.hpp>
 #include <lib/zmem.hpp>
 #include <lib/stack.hpp>
+#include <lib/zio.hpp>
 
 namespace zl {
-	struct strdup_info {
-		strdup_info(char *buf_str = nullptr, size_t string_len = 0, size_t buffer_length = 0) : 
-			buf(buf_str), str_len(string_len), buf_len(buffer_length) {}
-		char *buf;
-		size_t str_len;
-		size_t buf_len;
-		operator bool() { return buf; }
-	};
-	/*
-	 * Length excluding null terminator
-	 */
-	inline constexpr size_t strlen(const char *str) {
-		if (!str) return 0;
-		size_t index{0};
-		while (str[index++]);
-		return index - 1;
-	}
-	strdup_info strdup(const char *src);
-	bool strncat(char *dest, const char *src, size_t len);
-	bool strncpy(char *dest, const char *src, size_t len);
-	bool strequal(const char *str1, const char *str2);
-
 	class string {
 		public:
 			string(size_t init_size = 10);
@@ -123,37 +102,13 @@ namespace zl {
 			inline bool operator!=(const string &other) const {
 				return !equals(other);
 			}
+			friend ostream& operator<<(ostream &out, const string &str);
 		private:
 			unexpected<os::blk> auto_realloc(size_t add_num);
 			char *data;
 			size_t curr_index;
 			size_t len;
 	};
-
-	template<typename T>
-	inline expected<string> itoa(T num) {
-		stack<char> st;
-		if (st) {
-			auto num_iter = num;
-			while (num_iter) {
-				char last = (num_iter % 10) + '0';
-				st.push(last);
-				num_iter /= 10;
-			}
-			if (num < 0)
-				st.push('-');
-			string res;
-			while (!st.empty()) {
-				char fr = st.front();
-				res += fr;
-				st.pop();
-			}
-			return res;
-		} else {
-			return {nullptr, "[zl::itoa() error] -> zl::stack::stack() constructor error!"};
-		}
-		return {nullptr, "[zl::itoa() error] -> unknown error!"};
-	}
 }
 
 #endif /* LIB_ZSTRING_HPP */
