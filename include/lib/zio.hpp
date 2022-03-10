@@ -21,6 +21,7 @@
 #define LIB_ZIO_HPP
 
 #include <stdint.h>
+
 #include <drivers/vga.hpp>
 
 namespace zl {
@@ -67,7 +68,7 @@ namespace zl {
 		color_type color;
 	};
 
-	constexpr char endl{'\n'};
+	constexpr char endl = '\n';
 	extern ostream cout;
 	extern ostream cerr;
 

@@ -28,6 +28,12 @@
 // Other parts of zmem in different files
 #include <lib/unique_ptr.hpp>
 
+// Defining NULL as prescribed in the C standard
+#ifdef NULL
+#undef NULL
+#endif
+#define NULL 0
+
 namespace zl {
 	template<typename T>
 	T&& move(T &ref) {

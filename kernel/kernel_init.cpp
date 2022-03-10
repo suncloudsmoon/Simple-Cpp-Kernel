@@ -25,10 +25,7 @@
 
 // OS stuff
 #include <kernel/basic_io.hpp>
-
-// Testing the drivers
-#include <drivers/instr.hpp>
-#include <lib/stack.hpp>
+#include <drivers/ata.hpp>
 
 // Unit testing
 #include <test/test_zstring.hpp>
@@ -37,7 +34,11 @@ static void config_os();
 
 extern "C" void main() {
 	config_os();
-	zl::cout << zl::strlen("hello");
+	os::drivers::ata driv;
+	char hello_world[20] = "hello world!";
+	//driv.write(os::drivers::drive_bit::master_bit, {0, 0, 50}, {hello_world, sizeof(hello_world)});
+	auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 50}, 1);
+	zl::cout << "Data from ata driver: " << res.data[0] << zl::endl;
 }
 
 static void config_os() {

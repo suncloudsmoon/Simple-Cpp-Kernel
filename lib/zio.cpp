@@ -18,13 +18,28 @@
  */
 
 #include <stddef.h>
+
 #include <kernel/basic_io.hpp>
 #include <lib/zio.hpp>
-#include <lib/zstring.hpp>
-#include <lib/zstringutil.hpp>
 
 namespace zl {
-	static size_t index;
+	namespace {
+		template<typename T, typename Func>
+		void print_out_whole_num(T a, Func operation) {
+			constexpr size_t num_bits = 8 * sizeof(T);
+			char arr[num_bits];
+			int index = num_bits - 1;
+
+			while ((index >= 0) && (a != 0)) {
+				char c = (a % 10) + '0';
+				arr[index] = c;
+				a /= 10;
+				index--;
+			}
+			for (int i = index + 1; i < num_bits; i++)
+				operation(arr[i]);
+		}
+	}
 	ostream& ostream::operator<<(color_type type) {
 		color = type;
 		return *this;
@@ -34,22 +49,28 @@ namespace zl {
 		return (b) ? operator<<("true") : operator<<("false");
 	}
 	ostream& ostream::operator<<(unsigned short a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 	ostream& ostream::operator<<(short a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 	ostream& ostream::operator<<(unsigned int a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 	ostream& ostream::operator<<(int a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 	ostream& ostream::operator<<(unsigned long a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 	ostream& ostream::operator<<(long a) {
-		return operator<<(zl::itoa(a).get_val().c_str());
+		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
 	}
 
 	ostream& ostream::operator<<(char c) {
@@ -58,6 +79,7 @@ namespace zl {
 	}
 	ostream& ostream::operator<<(const char* str) {
 		if (!str) return operator<<("nullptr");
+		size_t index = 0;
 		while (char c = str[index++]) { operator<<(c); }
 		return *this;
 	}
@@ -66,7 +88,6 @@ namespace zl {
 	ostream cerr;
 
 	void config_zio() {
-		index = 0;
 		cout = ostream();
 		cerr = ostream(color::red);
 	}
