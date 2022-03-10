@@ -34,11 +34,16 @@ static void config_os();
 
 extern "C" void main() {
 	config_os();
+
 	os::drivers::ata driv;
-	char hello_world[20] = "hello world!";
-	//driv.write(os::drivers::drive_bit::master_bit, {0, 0, 50}, {hello_world, sizeof(hello_world)});
-	auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 50}, 1);
-	zl::cout << "Data from ata driver: " << res.data[0] << zl::endl;
+	uint16_t dat[256]{};
+	os::drivers::data_packet d = {dat, 256 };
+	driv.write(os::drivers::drive_bit::master_bit, {0, 0, 1}, d);
+	auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 1}, 1);
+	for (size_t i = 0; i < 100; i++)
+		zl::cout << (unsigned short) res.data[i] << ",";
+	zl::cout << zl::endl;	
+
 }
 
 static void config_os() {

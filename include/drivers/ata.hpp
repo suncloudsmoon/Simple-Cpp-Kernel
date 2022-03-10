@@ -12,7 +12,7 @@ namespace os {
 			constexpr uint8_t write_sec = 0x30;
 		}
 		namespace ports {
-			constexpr uint8_t io_base = (uint8_t) 0x1F0;
+			constexpr uint16_t io_base = (uint16_t) 0x1F0;
 			constexpr uint16_t data = io_base + (uint16_t) 0;
 			constexpr uint16_t err = io_base + (uint16_t) 1;
 			
@@ -21,9 +21,9 @@ namespace os {
 			constexpr uint16_t cylin_low = io_base + (uint16_t) 4;
 			constexpr uint16_t cylin_high = io_base + (uint16_t) 4;
 
-			constexpr uint8_t drive_head_select = io_base + (uint8_t) 6; // 8 bit output
-			constexpr uint8_t command = io_base + (uint8_t) 7; // 8 bit output
-			constexpr uint8_t status = io_base + (uint8_t) 7; // 8 bit output
+			constexpr uint16_t drive_head_select = io_base + (uint16_t) 6; // 8 bit output
+			constexpr uint16_t command = io_base + (uint16_t) 7; // 8 bit output
+			constexpr uint16_t status = io_base + (uint16_t) 7; // 8 bit output
 		}
 		namespace drive_type {
 			enum {

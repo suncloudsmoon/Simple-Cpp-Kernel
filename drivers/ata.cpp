@@ -19,14 +19,13 @@ namespace os {
 			uint16_t num_read = num_sectors * 256;
 			data_packet packet = { new uint16_t[num_read](), num_read };
 
-			instr::outw(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
-			instr::outw(ports::sec_count, num_read * sizeof(uint16_t));
-			instr::outw(ports::sec_num, addr.sector);
-			instr::outw(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
-			instr::outw(ports::cylin_high, addr.cylinder & 0xFF00);
+			instr::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
+			instr::outb(ports::sec_count, num_sectors);
+			instr::outb(ports::sec_num, addr.sector);
+			instr::outb(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
+			instr::outb(ports::cylin_high, addr.cylinder >> 8);
 
-			// Changed from outb to outw
-			instr::outw(ports::command, commands::read_sec);
+			instr::outb(ports::command, commands::read_sec);
 
 			for (size_t i = 0; i < packet.size; i++)
 				packet.data[i] = instr::inw(ports::data);
@@ -36,14 +35,14 @@ namespace os {
 		bool ata::write(int drive_bit, CHS addr, data_packet dat) {
 			if (!dat) return false;
 			
-			instr::outw(ports::sec_count, dat.size / 512);
-			instr::outw(ports::sec_num, addr.sector);
-			instr::outw(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
-			instr::outw(ports::cylin_high, addr.cylinder & 0xFF00);
-			instr::outw(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
+			instr::outb(ports::sec_count, (dat.size * sizeof(uint16_t)) / 512);
+			instr::outb(ports::sec_num, addr.sector);
+			instr::outb(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
+			instr::outb(ports::cylin_high, addr.cylinder & 0xFF00);
+			instr::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
 
 			// changed from outb to outw
-			instr::outw(ports::command, commands::write_sec);
+			instr::outb(ports::command, commands::write_sec);
 
 			for (size_t i = 0; i < dat.size; i++)
 				instr::outw(ports::data, dat.data[i]);
@@ -52,17 +51,17 @@ namespace os {
 		}
 
 		void ata::identity_cmd() {
-			instr::outw(ports::drive_head_select, drive_type::master_drive);
+			instr::outb(ports::drive_head_select, drive_type::master_drive);
 			// Zero out the IO ports
 			for (uint16_t port = 0x1F2; port <= 0x1F5; port++)
-				instr::outw(port, NULL);
-			instr::outw(ports::command, commands::identity);
+				instr::outb(port, NULL);
+			instr::outb(ports::command, commands::identity);
 			
 			// Polling for the status
 			unsigned polling_index = 0;
 			uint16_t status;
 			while (polling_index++ < polling_limit) {
-				status = instr::inw(ports::status);
+				status = instr::inb(ports::status);
 				if ((status & 128) == 0) break;
 			}
 			if (status == 0) {
@@ -74,10 +73,11 @@ namespace os {
 			uint16_t identity_data[256]{};
 			for (uint16_t i = 0; i < 256; i++)
 				identity_data[i] = instr::inw(ports::data);
+
 #ifdef DEBUG
 	zl::cout << "Ata Driver Testing" << zl::endl;
 	zl::cout << "Polling status is " << status << zl::endl;
-	for (int i = 0; i < 256; i++)
+	for (int i = 0; i < 100; i++)
 		zl::cout << "[" << i << "]: " << identity_data[i] << ",";
 	zl::cout << zl::endl;	
 	zl::cout << "End of Ata Driver Testing" << zl::endl;

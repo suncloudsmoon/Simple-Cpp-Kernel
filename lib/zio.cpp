@@ -26,6 +26,10 @@ namespace zl {
 	namespace {
 		template<typename T, typename Func>
 		void print_out_whole_num(T a, Func operation) {
+			if (a == 0) {
+				operation('0');
+				return;
+			}
 			constexpr size_t num_bits = 8 * sizeof(T);
 			char arr[num_bits];
 			int index = num_bits - 1;
