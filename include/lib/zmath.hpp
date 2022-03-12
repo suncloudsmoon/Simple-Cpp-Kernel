@@ -20,10 +20,28 @@
 #ifndef LIB_ZMATH_HPP
 #define LIB_ZMATH_HPP
 
+#include <drivers/instr.hpp>
+
 namespace zl {
 	template<typename T>
 	inline T round(T val, T nearest) {
 		return (val / nearest) * nearest + nearest;
+	}
+	inline double sin(double x) {
+		return os::drivers::instr::fsin(x);
+	}
+	inline double cos(double x) {
+		return os::drivers::instr::fcos(x);
+	}
+	inline double tan(double x) {
+		return os::drivers::instr::fptan(x);
+	}
+	inline double remainder(double dividend, double divisor) {
+		return os::drivers::instr::fprem1(dividend, divisor);
+	}
+	// TODO: change this
+	inline double mod(double dividend, double divisor) {
+		return os::drivers::instr::fprem1(dividend, divisor);
 	}
 }
 

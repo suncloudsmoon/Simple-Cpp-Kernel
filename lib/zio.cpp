@@ -20,7 +20,9 @@
 #include <stddef.h>
 
 #include <kernel/basic_io.hpp>
+
 #include <lib/zio.hpp>
+#include <lib/zmath.hpp>
 
 namespace zl {
 	namespace {
@@ -43,6 +45,27 @@ namespace zl {
 			for (int i = index + 1; i < num_bits; i++)
 				operation(arr[i]);
 		}
+
+		template<typename Func>
+		void print_floating_point_num(double a, Func operation) {
+			if (a == 0) {
+				operation('0');
+				return;
+			}
+			// Must accept plus or minus?
+			// double MAX: 309 digits
+			bool is_neg = a < 0;
+			char digits[309]{}; // zero initialized
+			int index = sizeof(digits) - 1;
+			while (a >= 1) {
+				char c = (char) (a / 10) + '0';
+				digits[index--] = c;
+				a /= 10;
+			}
+			if (is_neg) operation('-');
+			for (int i = index + 1; i < sizeof(digits); i++)
+				operation(digits[i]);
+		}
 	}
 	ostream& ostream::operator<<(color_type type) {
 		color = type;
@@ -57,6 +80,7 @@ namespace zl {
 		return *this;
 	}
 	ostream& ostream::operator<<(short a) {
+		if (a < 0) operator<<('-');
 		print_out_whole_num(a, [&](char c) { operator<<(c); });
 		return *this;
 	}
@@ -65,6 +89,7 @@ namespace zl {
 		return *this;
 	}
 	ostream& ostream::operator<<(int a) {
+		if (a < 0) operator<<('-');
 		print_out_whole_num(a, [&](char c) { operator<<(c); });
 		return *this;
 	}
@@ -73,7 +98,13 @@ namespace zl {
 		return *this;
 	}
 	ostream& ostream::operator<<(long a) {
+		if (a < 0) operator<<('-');
 		print_out_whole_num(a, [&](char c) { operator<<(c); });
+		return *this;
+	}
+
+	ostream& ostream::operator<<(double a) {
+		print_floating_point_num(a, [&](char c) { operator<<(c); });
 		return *this;
 	}
 

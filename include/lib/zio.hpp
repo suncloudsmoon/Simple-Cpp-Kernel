@@ -61,6 +61,8 @@ namespace zl {
 		ostream& operator<<(int a);
 		ostream& operator<<(unsigned long a);
 		ostream& operator<<(long a);
+
+		ostream& operator<<(double a);
 		
 		ostream& operator<<(char c);
 		ostream& operator<<(const char *str);

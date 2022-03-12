@@ -29,21 +29,31 @@
 
 // Unit testing
 #include <test/test_zstring.hpp>
+#include <lib/zmath.hpp>
 
 static void config_os();
 
 extern "C" void main() {
 	config_os();
 
-	os::drivers::ata driv;
-	uint16_t dat[256]{};
-	os::drivers::data_packet d = {dat, 256 };
-	driv.write(os::drivers::drive_bit::master_bit, {0, 0, 1}, d);
-	auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 1}, 1);
-	for (size_t i = 0; i < 100; i++)
-		zl::cout << (unsigned short) res.data[i] << ",";
-	zl::cout << zl::endl;	
+	// os::drivers::ata driv;
+	// uint16_t dat[256]{};
+	// os::drivers::data_packet d = {dat, 256 };
+	// driv.write(os::drivers::drive_bit::master_bit, {0, 0, 1}, d);
+	// auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 1}, 1);
+	// for (size_t i = 0; i < 100; i++)
+	// 	zl::cout << (unsigned short) res.data[i] << ",";
+	// zl::cout << zl::endl;
 
+	// double res = os::drivers::instr::fsin(3.14 / 2);
+	// zl::cout << "Sin(0) is " << (int) (res * 10) << zl::endl;
+
+	// double res = zl::mod(101, 5);
+	// zl::cout << (int) res << zl::endl;
+
+	double num = 25.0;
+	int c = zl::mod(num, 10);
+	zl::cout << (zl::mod(28.0, 5) <= -2.0) << zl::endl;
 }
 
 static void config_os() {

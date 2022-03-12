@@ -24,7 +24,17 @@
 boot:
 	mov bp, 0x8000
 	mov sp, bp
+	mov eax, 0
+
+read_multiple_times:
+	inc eax
+	push eax
 	read_hdd 0x1000,20,0,0,2
+	pop eax
+	cmp eax, 3
+	jle read_multiple_times
+
+jmp_to_protected_mode:
 	jmp switch_to_protected
 	hlt
 

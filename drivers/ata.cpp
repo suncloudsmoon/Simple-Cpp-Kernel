@@ -19,11 +19,11 @@ namespace os {
 			uint16_t num_read = num_sectors * 256;
 			data_packet packet = { new uint16_t[num_read](), num_read };
 
-			instr::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
 			instr::outb(ports::sec_count, num_sectors);
 			instr::outb(ports::sec_num, addr.sector);
 			instr::outb(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
 			instr::outb(ports::cylin_high, addr.cylinder >> 8);
+			instr::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
 
 			instr::outb(ports::command, commands::read_sec);
 
