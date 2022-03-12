@@ -20,12 +20,14 @@
 #include <lib/zassert.hpp>
 #include <lib/zio.hpp>
 
+#include <drivers/instr.hpp>
+
 namespace zl {
 #ifdef DEBUG	
 	void assert(bool condition, const char *message) {
 		if (!condition)
 			zl::cout << "Assertion Failed: " << message << zl::endl;
+		os::driv::x86::hlt();	
 	}
-	asm("hlt");
 #endif
 }

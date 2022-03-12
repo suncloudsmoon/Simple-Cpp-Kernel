@@ -20,8 +20,12 @@
 #include <drivers/instr.hpp>
 
 namespace os {
-	namespace drivers {
-		namespace instr {
+	namespace driv {
+		namespace x86 {
+			void hlt() {
+				asm("hlt");
+			}
+
 			uint8_t inb(uint16_t port) {
 #ifdef __GNUC__					
 				uint8_t dat;
@@ -73,7 +77,8 @@ namespace os {
 #error "Your compiler is not supported for executing outw(port) function yet!"
 #endif				
 			}
-
+		}
+		namespace x87 {
 			// Assembly trig functions
 			double fsin(double x) {
 #ifdef __GNUC__				
@@ -138,7 +143,6 @@ namespace os {
 #error "Your compiler is not supported for executing fptan(x) function yet!"
 #endif	
 			}
-
 		}
 	}
 }

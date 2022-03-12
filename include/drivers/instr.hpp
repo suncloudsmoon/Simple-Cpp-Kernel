@@ -23,16 +23,20 @@
 #include <stdint.h>
 
 namespace os {
-	namespace drivers {
-		namespace instr {
+	namespace driv {
+		namespace x86 {
+			// General x86 instructions
+			void hlt();
+
 			// I/O operations
 			uint8_t inb(uint16_t port);
 			void outb(uint16_t port, uint8_t dat);
 			
 			uint16_t inw(uint16_t port);
 			void outw(uint16_t port, uint16_t dat);
-			
-			// Floating Point Operations
+		}
+		// FPU stuff
+		namespace x87 {
 			double fsin(double x);
 			double fcos(double x);
 			double fptan(double x);

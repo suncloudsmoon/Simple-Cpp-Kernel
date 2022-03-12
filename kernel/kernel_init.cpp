@@ -36,12 +36,16 @@ static void config_os();
 extern "C" void main() {
 	config_os();
 
-	os::drivers::ata driv;
-	if (driv) {
-		auto res = driv.read(os::drivers::drive_bit::master_bit, {0, 0, 2}, 1);
-		for (size_t i = 0; i < 100; i++)
-			zl::cout << (unsigned short) res.data[i] << ",";
-		zl::cout << zl::endl;
+	os::driv::ata::atapio hdd;
+	if (hdd) {
+		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, {0, 0, 1}, 1)) {
+			zl::cout << "Data from hard drive:" << zl::endl;
+			for (size_t i = 0; i < 100; i++)
+				zl::cout << (*res).data[i] << ",";
+			zl::cout << zl::endl;
+		} else {
+			zl::cerr << "ATA Error: " << res.get_err_message() << zl::endl;
+		}
 	} else {
 		zl::cerr << "Unable to initialize ATA driver!" << zl::endl;
 	}

@@ -28,20 +28,20 @@ namespace zl {
 		return (val / nearest) * nearest + nearest;
 	}
 	inline double sin(double x) {
-		return os::drivers::instr::fsin(x);
+		return os::driv::x87::fsin(x);
 	}
 	inline double cos(double x) {
-		return os::drivers::instr::fcos(x);
+		return os::driv::x87::fcos(x);
 	}
 	inline double tan(double x) {
-		return os::drivers::instr::fptan(x);
+		return os::driv::x87::fptan(x);
 	}
 	inline double remainder(double dividend, double divisor) {
-		return os::drivers::instr::fprem1(dividend, divisor);
+		return os::driv::x87::fprem1(dividend, divisor);
 	}
 	// TODO: change this
 	inline double mod(double dividend, double divisor) {
-		return os::drivers::instr::fprem1(dividend, divisor);
+		return os::driv::x87::fprem1(dividend, divisor);
 	}
 }
 
