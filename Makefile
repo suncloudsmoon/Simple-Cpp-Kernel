@@ -7,8 +7,8 @@ ALL_OBJS := bin/kernel_entry.o bin/kernel_init.okernel bin/basic_io.okernel bin/
 
 # First, create a blank 1.44 MB (1,440 KB) floppy disk
 # Second, copy os.bin to os_floppy.img
-$(BIN_DIR)/os_floppy.img: $(BIN_DIR)/os.bin
-	dd if=/dev/zero of=$@ bs=1024 count=1440 conv=notrunc
+$(BIN_DIR)/os.hdd: $(BIN_DIR)/os.bin
+	dd if=/dev/zero of=$@ bs=1024 count=1024 conv=notrunc
 	dd if=$^ of=$@ bs=512 conv=notrunc
 
 $(BIN_DIR)/os.bin: $(BIN_DIR)/boot.bin $(BIN_DIR)/kernel.bin

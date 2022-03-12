@@ -22,7 +22,7 @@
 read_hdd_manual:
 	pusha
 	mov ah, 02
-	mov dl, 0x0
+	mov dl, 0x80
 	int 13h
 	jc error
 	popa

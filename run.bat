@@ -1,1 +1,1 @@
-qemu-system-i386 -drive if=floppy,format=raw,file=bin/os_floppy.img
+qemu-system-i386 -drive format=raw,file=bin/os.hdd -boot c
