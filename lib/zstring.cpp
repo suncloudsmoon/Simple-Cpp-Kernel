@@ -22,7 +22,7 @@
 #include <lib/zstringutil.hpp>
 
 namespace zl {
-	string::string(size_t init_size) : data(nullptr), curr_index(0), len(0) {
+	string::string(size_t init_size) {
 		if (!init_size)
 			return;
 		if (auto res = malloc(init_size)) {
@@ -34,14 +34,14 @@ namespace zl {
 			zl::assert(false, "[zl::string::string error] -> unable to allocate memory for string!");
 		}
 	}
-	string::string(const char *src) : data(nullptr), curr_index(0), len(0) {
+	string::string(const char *src) {
 		if (auto info = strdup(src)) {
 			data = info.buf;
 			curr_index = info.str_len;
 			len = info.buf_len;
 		}
 	}
-	string::string(const string &other) : data(nullptr), curr_index(0), len(0) {
+	string::string(const string &other) {
 		if (auto info = strdup(other.c_str())) {
 			data = info.buf;
 			len = info.buf_len;
@@ -142,7 +142,7 @@ namespace zl {
 	}
 
 	// Private member(s) of the class
-	unexpected<os::blk> string::auto_realloc(size_t add_num) {
+	unexpected<blk> string::auto_realloc(size_t add_num) {
 		if (curr_index + add_num + 1 >= len) {
 			if (auto res = malloc(curr_index + add_num + 1)) {
 				data = static_cast<char*>((*res).ptr);

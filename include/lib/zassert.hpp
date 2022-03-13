@@ -28,7 +28,7 @@
 
 namespace zl {
 #ifdef DEBUG
-	void assert(bool condition, const char *message = "");
+	extern void assert(bool condition, const char *message = "");
 #else
 	inline void assert(bool condition, const char *message = "") {
 		(void) 0;

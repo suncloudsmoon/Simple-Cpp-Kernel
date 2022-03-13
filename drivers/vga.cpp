@@ -20,7 +20,7 @@
 #include <drivers/vga.hpp>
 
 namespace os {
-	namespace drivers {
+	namespace driv {
 		namespace vga {
 			static unsigned int width, height;
 			void config_dimensions(unsigned int w, unsigned int h) {

@@ -1,7 +1,3 @@
-#ifndef DRIVERS_ATA_HPP
-#define DRIVERS_ATA_HPP
-
-#include <stdint.h>
 /*
  * Copyright (c) 2022, suncloudsmoon and the Simple-Cpp-Kernel contributors.
  *
@@ -21,13 +17,19 @@
  * SOFTWARE.
  */
 
+#ifndef DRIVERS_ATA_HPP
+#define DRIVERS_ATA_HPP
+
 #include <stddef.h>
+#include <stdint.h>
 
 #include <lib/zutil.hpp>
+#include <lib/zstring.hpp>
 
 namespace os {
 	namespace driv {
 		namespace ata {
+			using LBA28 = uint32_t;
 			namespace commands {
 				constexpr uint16_t identity = 0xEC;
 				constexpr uint8_t read_sec = 0x20;
@@ -39,9 +41,9 @@ namespace os {
 				constexpr uint16_t err = io_base + (uint16_t) 1;
 				
 				constexpr uint16_t sec_count = io_base + (uint16_t) 2;
-				constexpr uint16_t sec_num = io_base + (uint16_t) 3;
-				constexpr uint16_t cylin_low = io_base + (uint16_t) 4;
-				constexpr uint16_t cylin_high = io_base + (uint16_t) 4;
+				constexpr uint16_t lba_low = io_base + (uint16_t) 3;
+				constexpr uint16_t lba_mid = io_base + (uint16_t) 4;
+				constexpr uint16_t lba_high = io_base + (uint16_t) 5;
 
 				constexpr uint16_t drive_head_select = io_base + (uint16_t) 6;
 				constexpr uint16_t command = io_base + (uint16_t) 7;
@@ -61,8 +63,8 @@ namespace os {
 
 			namespace drive_type {
 				enum {
-					master_drive = 0xA0,
-					slave_drive = 0xB0
+					master_drive = 0xE0,
+					slave_drive = 0xF0
 				};
 			}
 			// Got info from https://wiki.osdev.org/PCI_IDE_Controller#Read.2FWrite_From_ATA_Drive
@@ -73,28 +75,40 @@ namespace os {
 				};
 			}
 
-			// for ata::write() function
-			struct CHS {
-				uint16_t cylinder;
-				uint16_t head;
-				uint16_t sector;
-			};
 			struct data_packet {
 				data_packet(uint16_t *dat, size_t siz) : data(dat), size(siz) {}
 				operator bool() { return data && size; }
 				uint16_t *data;
 				size_t size;
 			};
+			struct atapio_identify_info {
+				LBA28 max_sector_count = 0;
+			};
+			struct err_message {
+				zl::string str;
+				int code = 0;
+			};
 			class atapio {
 				public:
 					atapio(unsigned polling_limit = 1000);
 					operator bool() { return ata_init_success; }
-					zl::expected<data_packet> read(int drive_bit, CHS addr, uint16_t num_sectors);
-					bool write(int drive_bit, CHS addr, data_packet dat);
+					
+					zl::expected<data_packet> read(int drive_bit, LBA28 addr, uint16_t num_sectors);
+					bool write(int drive_bit, LBA28 addr, data_packet dat);
+					
+					const atapio_identify_info& get_dev_info() const {
+						return hdd_info;
+					}
+					const err_message& get_error_message() const {
+						return err;
+					}
 				private:
 					void identity_cmd();
-					bool ata_init_success;
-					unsigned poll_lim;	
+					unsigned poll_lim;
+					bool ata_init_success = true;
+					
+					atapio_identify_info hdd_info;
+					err_message err;
 			};
 		}
 	}

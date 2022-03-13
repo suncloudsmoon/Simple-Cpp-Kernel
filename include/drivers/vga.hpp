@@ -21,11 +21,11 @@
 #define DRIVERS_VGA_HPP
 
 namespace os {
-	namespace drivers {
+	namespace driv {
 		namespace vga {
-			// Due to some unknown error, I had to make this a define!
+			// Since volatile pointers cannot be declared as constexpr, I chose this macro instead
 			#define os_vga_ptr reinterpret_cast<volatile char *>(0xB8000)
-			constexpr unsigned int SPACES_PER_TAB{4};
+			constexpr unsigned spaces_per_tab = 4;
 			enum {
 				black = 0,
 				blue = 1,

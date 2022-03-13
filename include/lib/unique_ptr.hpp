@@ -24,7 +24,7 @@ namespace zl {
 	template<typename T>
 	class unique_ptr {
 		public:
-			unique_ptr() : ptr(nullptr) {}
+			unique_ptr() = default;
 			explicit unique_ptr(T* init) : ptr(init) {}
 			unique_ptr(const unique_ptr &other) = delete;
 			unique_ptr(unique_ptr &&other) {
@@ -39,11 +39,13 @@ namespace zl {
 				other.ptr = nullptr;
 				return *this;
 			}
-			T* operator*() { return ptr; }
-			T* operator->() { return ptr; }
 			operator bool() { return ptr; }
+
+			T* get_ptr() { return ptr; }
+			T* operator*() { return get_ptr(); }
+			T* operator->() { return get_ptr(); }
 		private:
-			T *ptr;
+			T *ptr = nullptr;
 	};
 }
 

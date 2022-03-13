@@ -25,9 +25,10 @@
 namespace zl {
 #ifdef DEBUG	
 	void assert(bool condition, const char *message) {
-		if (!condition)
+		if (!condition) {
 			zl::cout << "Assertion Failed: " << message << zl::endl;
-		os::driv::x86::hlt();	
+			os::driv::x86::hlt();
+		}
 	}
 #endif
 }

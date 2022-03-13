@@ -67,13 +67,13 @@ namespace zl {
 				return iterator(arr + curr_len);
 			}
 		public:
-			growing_array(size_t length = 10) : arr(nullptr), curr_len(0), len(0) {
+			growing_array(size_t length = 10) {
 				if (auto res = malloc(length * sizeof(T*))) [[likely]] {
 					arr = static_cast<T**>((*res).ptr);
 					len = length;
 				}
 			}
-			growing_array(const growing_array &other) : curr_len(0), len(0) {
+			growing_array(const growing_array &other) {
 				if (auto res = allocate_at_least(other.len)) [[likely]] {
 					if (!memcpy(arr, other.arr, other.len)) [[unlikely]] {
 						free(arr);
@@ -133,7 +133,7 @@ namespace zl {
 				other.len = 0;
 			}
 		protected:	
-			unexpected<os::blk> allocate_at_least(size_t length) {
+			unexpected<blk> allocate_at_least(size_t length) {
 				if (auto res = malloc(length * sizeof(T*))) [[likely]] {
 					arr = static_cast<T**>((*res).ptr);
 					len = (*res).len;
@@ -236,7 +236,7 @@ namespace zl {
 				len = new_len;
 			}
 		private:
-			unexpected<os::blk> auto_realloc(size_t add_num) {
+			unexpected<blk> auto_realloc(size_t add_num) {
 				if (curr_len + add_num + 1 >= len) {
 					if (auto res = realloc(arr, curr_len + add_num + 1)) [[likely]] {
 						arr = static_cast<T**>((*res).ptr);
@@ -248,9 +248,9 @@ namespace zl {
 				}
 				return {};
 			}
-			T **arr;
-			size_t curr_len;
-			size_t len;
+			T **arr = nullptr;
+			size_t curr_len = 0;
+			size_t len = 0;
 	};
 }
 

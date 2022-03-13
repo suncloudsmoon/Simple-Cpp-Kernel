@@ -24,34 +24,34 @@ namespace zl {
 	template<typename T>
 	class optional {
 		public:
-			optional() : is_init(), data{} {}
-			explicit optional(T &&a) : is_init(true), data(a) {}
-			optional(const optional &other) : is_init(other.is_init), data(other.data) {}
-			optional(optional &&other) : is_init(other.is_init), data(other.data) {}
+			optional() = default;
+			explicit optional(T &&a) : data(a), is_init(true) {}
+			optional(const optional &other) : data(other.data), is_init(other.is_init) {}
+			optional(optional &&other) : data(other.data), is_init(other.is_init) {}
 			operator bool() { return is_init; }
 			T& operator*() { return data; }
 		private:
-			bool is_init;
-			T data;	
+			T data{};
+			bool is_init{};
 	};
 	template<typename T>
 	class optional<T*> {
 		public:
-			optional() : is_init(), data{} {}
-			explicit optional(T &&a) : is_init(true), data(a) {}
+			optional() = default;
+			explicit optional(T &&a) : data(a), is_init(true) {}
 			optional(const optional &other) = delete;
 			optional(optional &&other) {
-				is_init = other.is_init;
 				data = other.data;
+				is_init = other.is_init;
 
-				other.is_init = false;
 				other.data = nullptr;
+				other.is_init = false;
 			}
 			operator bool() { return is_init; }
 			T& operator*() { return data; }
 		private:
-			bool is_init;
-			T data;	
+			T data{};
+			bool is_init{};
 	};
 }
 

@@ -27,7 +27,7 @@
 namespace os {
 	namespace driv {
 		namespace ata {
-			atapio::atapio(unsigned polling_limit) : ata_init_success(true), poll_lim(polling_limit) {
+			atapio::atapio(unsigned polling_limit) : poll_lim(polling_limit) {
 				identity_cmd();
 			}
 
@@ -47,6 +47,8 @@ namespace os {
 				}
 				if (status == 0) {
 					ata_init_success = false;
+					err.str = "[os::driv::ata::atapio::identity_cmd() error] -> status poll failure!";
+					err.code = -1;
 					return;
 				}
 
@@ -54,26 +56,31 @@ namespace os {
 				uint16_t identity_data[256]{};
 				for (uint16_t i = 0; i < 256; i++)
 					identity_data[i] = x86::inw(ports::data);
-	#ifdef DEBUG
-		zl::cout << "Ata Driver Testing" << zl::endl;
-		zl::cout << "Polling status is " << status << zl::endl;
-		for (int i = 0; i < 100; i++)
-			zl::cout << "[" << i << "]: " << identity_data[i] << ",";
-		zl::cout << zl::endl;	
-		zl::cout << "End of Ata Driver Testing" << zl::endl;
-	#endif
+				
+				uint32_t first_lba_max = identity_data[60];
+				uint32_t second_lba_max = identity_data[61] << 16;
+				hdd_info.max_sector_count |= first_lba_max;
+				hdd_info.max_sector_count |= second_lba_max;
+				if (hdd_info.max_sector_count == 0) {
+					ata_init_success = false;
+					err.str = "[os::driv::ata::atapio::identity_cmd() error] -> LBA28 addressing mode is not supported on current hardware!";
+					err.code = -2;
+				}
 			}
 
 			// TODO: fix memory leak resulting from data_packet... maybe add a destructor?
-			zl::expected<data_packet> atapio::read(int drive_bit, CHS addr, uint16_t num_sectors) {
+			// num_sectors -> number of 512 byte sectors to read
+			zl::expected<data_packet> atapio::read(int drive_bit, LBA28 addr, uint16_t num_sectors) {
+				zl::assert(ata_init_success, "[os::driv::ata::atapio::read(int, LBA28, uint16_t) error] -> ATA failed to initialize!");
+				
 				uint16_t num_read = num_sectors * 256;
 				data_packet packet = { new uint16_t[num_read](), num_read };
 
-				x86::outb(ports::sec_count, num_sectors);
-				x86::outb(ports::sec_num, addr.sector);
-				x86::outb(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
-				x86::outb(ports::cylin_high, addr.cylinder >> 8);
-				x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
+				x86::outb(ports::sec_count, num_sectors / 256);
+				x86::outb(ports::lba_low, addr);
+				x86::outb(ports::lba_mid, addr >> 8);
+				x86::outb(ports::lba_high, addr >> 16);
+				x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
 				x86::outb(ports::command, commands::read_sec);
 
 				// Wait until the device is ready to tranfer data
@@ -90,29 +97,31 @@ namespace os {
 
 				return packet;
 			}
-			bool atapio::write(int drive_bit, CHS addr, data_packet dat) {
-				if (!dat) return false;
+			bool atapio::write(int drive_bit, LBA28 addr, data_packet dat) {
+				zl::assert(ata_init_success, "[os::driv::ata::atapio::read(int, LBA28, uint16_t) error] -> ATA failed to initialize!");
 				
-				x86::outb(ports::sec_count, (dat.size * sizeof(uint16_t)) / 512);
-				x86::outb(ports::sec_num, addr.sector);
-				x86::outb(ports::cylin_low, addr.cylinder & 0xFF); // zero out 0000 0000 1111 1111
-				x86::outb(ports::cylin_high, addr.cylinder & 0xFF00);
-				x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | addr.head);
+				if (!dat) return false;
+
+				x86::outb(ports::sec_count, (dat.size / 256) / 256);
+				x86::outb(ports::lba_low, addr);
+				x86::outb(ports::lba_mid, addr >> 8);
+				x86::outb(ports::lba_high, addr >> 16);
+				x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
 				x86::outb(ports::command, commands::write_sec);
 
 				// Wait until the device is ready to tranfer data
 				unsigned poll_index = 0;
 				while (poll_index++ < poll_lim) {
-					uint16_t status = x86::inw(ports::status);
-					// (Bit 3 and 7) must be 0 or (Bit 0 or 5) is 1
-					if (((status & 8) == 0 && (status & 128) == 0) || ((status & 1) != 0 || (status & 32) != 0)) break;
+					uint8_t status = x86::inb(ports::status);
+					// (Bit 3 is not 0 and Bit 7 is 0) or (Bit 0/5 is 1)
+					if ((status & status_info::drq) != 0 && (status & status_info::bsy) == 0) break;
 				}
 				if (poll_index >= poll_lim)
 					return false;
 				for (size_t i = 0; i < dat.size; i++)
 					x86::outw(ports::data, dat.data[i]);
 
-				return true;
+				return true;		
 			}
 		}
 	}

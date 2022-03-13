@@ -32,23 +32,24 @@ namespace zl {
 		int color;
 	};
 	namespace color {
-		constexpr color_type black = os::drivers::vga::black;
-		constexpr color_type blue = os::drivers::vga::blue;
-		constexpr color_type green = os::drivers::vga::green;
-		constexpr color_type cyan = os::drivers::vga::cyan;
-		constexpr color_type red = os::drivers::vga::red;
-		constexpr color_type purple = os::drivers::vga::purple;
-		constexpr color_type brown = os::drivers::vga::brown;
-		constexpr color_type gray = os::drivers::vga::gray;
-		constexpr color_type dark_gray = os::drivers::vga::dark_gray;
-		constexpr color_type yellow = os::drivers::vga::yellow;
-		constexpr color_type white = os::drivers::vga::white;
+		using namespace os::driv;
+		constexpr color_type black = vga::black;
+		constexpr color_type blue = vga::blue;
+		constexpr color_type green = vga::green;
+		constexpr color_type cyan = vga::cyan;
+		constexpr color_type red = vga::red;
+		constexpr color_type purple = vga::purple;
+		constexpr color_type brown = vga::brown;
+		constexpr color_type gray = vga::gray;
+		constexpr color_type dark_gray = vga::dark_gray;
+		constexpr color_type yellow = vga::yellow;
+		constexpr color_type white = vga::white;
 		
-		constexpr color_type light_blue = os::drivers::vga::light_blue;
-		constexpr color_type light_green = os::drivers::vga::light_green;
-		constexpr color_type light_cyan = os::drivers::vga::light_cyan;
-		constexpr color_type light_red = os::drivers::vga::light_red;
-		constexpr color_type light_purple = os::drivers::vga::light_purple;
+		constexpr color_type light_blue = vga::light_blue;
+		constexpr color_type light_green = vga::light_green;
+		constexpr color_type light_cyan = vga::light_cyan;
+		constexpr color_type light_red = vga::light_red;
+		constexpr color_type light_purple = vga::light_purple;
 	}
 	struct ostream {
 		ostream(color_type type = color::white) : color(type) {}

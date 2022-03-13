@@ -41,7 +41,8 @@ namespace zl {
 	}
 	// TODO: change this
 	inline double mod(double dividend, double divisor) {
-		return os::driv::x87::fprem1(dividend, divisor);
+		double ieee_remainder = remainder(dividend, divisor);
+		return (ieee_remainder < 0) ? (divisor + ieee_remainder) : ieee_remainder;
 	}
 }
 

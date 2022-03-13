@@ -25,8 +25,8 @@ namespace os {
 
 	void config_basic_io(unsigned int width, unsigned int height) {
 		x = 0, y = 0;
-		drivers::vga::config_dimensions(width, height);
-		drivers::vga::clear_screen();
+		driv::vga::config_dimensions(width, height);
+		driv::vga::clear_screen();
 	}
 	void putch(char c, unsigned char color_type) {
 		if (c == '\n') {
@@ -34,17 +34,17 @@ namespace os {
 			x = 0;
 			return;
 		} else if (c == '\t') {
-			x += drivers::vga::SPACES_PER_TAB;
+			x += driv::vga::spaces_per_tab;
 			return;
 		}
-		if (x >= drivers::vga::get_width() * 2) {
+		if (x >= driv::vga::get_width() * 2) {
 			y++;
 			x = 0;
 		}
-		if (y >= drivers::vga::get_height())
+		if (y >= driv::vga::get_height())
 			return;
 
-		auto pos = drivers::vga::map_to_1D(x, y, drivers::vga::get_width() * 2);
+		auto pos = driv::vga::map_to_1D(x, y, driv::vga::get_width() * 2);
 		os_vga_ptr[pos] = c;
 		os_vga_ptr[pos + 1] = color_type;
 		x += 2;

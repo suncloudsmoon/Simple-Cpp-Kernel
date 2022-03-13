@@ -104,10 +104,10 @@ namespace zl {
 			}
 			friend ostream& operator<<(ostream &out, const string &str);
 		private:
-			unexpected<os::blk> auto_realloc(size_t add_num);
-			char *data;
-			size_t curr_index;
-			size_t len;
+			unexpected<blk> auto_realloc(size_t add_num);
+			char *data = nullptr;
+			size_t curr_index = 0;
+			size_t len = 0;
 	};
 }
 

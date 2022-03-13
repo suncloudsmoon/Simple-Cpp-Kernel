@@ -31,32 +31,32 @@
 #include <test/test_zstring.hpp>
 #include <lib/zmath.hpp>
 
-static void config_os();
+namespace {
+	void config_os() {
+		os::config_basic_io(80, 25);
+		zl::config_zio();
+		os::mem::init();
+	}
+}
 
 extern "C" void main() {
 	config_os();
 
 	os::driv::ata::atapio hdd;
 	if (hdd) {
-		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, {0, 0, 1}, 1)) {
+		os::driv::ata::data_packet packet{new uint16_t[256](), 256};
+		bool write_success = hdd.write(os::driv::ata::drive_bit::master_bit, 0, packet);
+		zl::cout << "Write success: " << write_success << zl::endl;
+		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, 0, 1)) {
 			zl::cout << "Data from hard drive:" << zl::endl;
 			for (size_t i = 0; i < 100; i++)
 				zl::cout << (*res).data[i] << ",";
 			zl::cout << zl::endl;
+			delete[] (*res).data;
 		} else {
 			zl::cerr << "ATA Error: " << res.get_err_message() << zl::endl;
 		}
 	} else {
 		zl::cerr << "Unable to initialize ATA driver!" << zl::endl;
 	}
-
-	// double num = 25.0;
-	// int c = zl::mod(num, 10);
-	// zl::cout << (zl::mod(28.0, 5) <= -2.0) << zl::endl;
-}
-
-static void config_os() {
-	os::config_basic_io(80, 25);
-	zl::config_zio();
-    os::mem_init();
 }

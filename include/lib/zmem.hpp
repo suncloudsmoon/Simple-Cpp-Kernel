@@ -35,6 +35,8 @@
 #define NULL 0
 
 namespace zl {
+	using blk = os::mem::blk;
+	
 	template<typename T>
 	T&& move(T &ref) {
 		return static_cast<T&&>(ref);
@@ -69,14 +71,14 @@ namespace zl {
 		return true;
 	}
 	
-	inline expected<os::blk> malloc(size_t size) {
-		return os::alloc(size);
+	inline expected<blk> malloc(size_t size) {
+		return os::mem::alloc(size);
 	}
-	inline expected<os::blk> realloc(void *src, size_t size) {
-		return os::realloc(src, size);
+	inline expected<blk> realloc(void *src, size_t size) {
+		return os::mem::realloc(src, size);
 	}
 	inline bool free(void *ptr) {
-		return os::free(ptr);
+		return os::mem::free(ptr);
 	}
 }
 
