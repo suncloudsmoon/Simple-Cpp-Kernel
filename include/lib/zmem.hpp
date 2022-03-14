@@ -22,11 +22,12 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <lib/zutil.hpp>
-#include <kernel/basic_mem_util.hpp>
 
+#include <lib/zutil.hpp>
 // Other parts of zmem in different files
 #include <lib/unique_ptr.hpp>
+
+#include <kernel/basic_mem_util.hpp>
 
 // Defining NULL as prescribed in the C standard
 #ifdef NULL
@@ -38,38 +39,21 @@ namespace zl {
 	using blk = os::mem::blk;
 	
 	template<typename T>
-	T&& move(T &ref) {
+	inline T&& move(T &ref) {
 		return static_cast<T&&>(ref);
 	}
 
 	/*
-	Can have overlapping memory regions
-	*/
+	 * Can have overlapping memory regions
+	 */
 	template<typename T>
-	inline bool memcpy(T *dest, const T *src, size_t src_num_cpy) {
-		if (!dest || !src || !src_num_cpy)
-			return false;
-		
-		for (size_t i = 0; i < src_num_cpy; i++) 
-			dest[i] = src[i];
-		
+	inline bool memcpy(T *dest, const T *src, size_t bytes) {
+		if (!dest || !src || !bytes) return false;
+		for (size_t i = 0; i < bytes / sizeof(T); i++) { dest[i] = src[i]; }
 		return true;
 	}
-
 	template<>
-	inline bool memcpy(void *dest, const void *src, size_t src_num_cpy) {
-		if (!dest || !src || !src_num_cpy)
-			return false;
-
-		// Interesting... they cast void* to long* to do the copy operation (CPU accessing a data type that is at least long width)
-		int32_t *dest_lon = reinterpret_cast<int32_t*>(dest);
-		const int32_t *src_lon = reinterpret_cast<const int32_t*>(src);
-		
-		for (size_t i = 0; i < src_num_cpy; i++) 
-			dest_lon[i] = src_lon[i];
-		
-		return true;
-	}
+	bool memcpy(void *dest, const void *src, size_t bytes);
 	
 	inline expected<blk> malloc(size_t size) {
 		return os::mem::alloc(size);

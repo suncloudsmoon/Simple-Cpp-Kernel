@@ -34,6 +34,7 @@ namespace os {
 				constexpr uint16_t identity = 0xEC;
 				constexpr uint8_t read_sec = 0x20;
 				constexpr uint8_t write_sec = 0x30;
+				constexpr uint16_t cache_flush = 0xE7;
 			}
 			namespace ports {
 				constexpr uint16_t io_base = (uint16_t) 0x1F0;
@@ -76,10 +77,10 @@ namespace os {
 			}
 
 			struct data_packet {
-				data_packet(uint16_t *dat, size_t siz) : data(dat), size(siz) {}
-				operator bool() { return data && size; }
+				data_packet(uint16_t *dat, size_t siz) : data(dat), bytes(siz) {}
+				operator bool() { return data && bytes; }
 				uint16_t *data;
-				size_t size;
+				size_t bytes;
 			};
 			struct atapio_identify_info {
 				LBA28 max_sector_count = 0;
@@ -90,16 +91,17 @@ namespace os {
 			};
 			class atapio {
 				public:
-					atapio(unsigned polling_limit = 1000);
+					atapio(unsigned polling_limit = 10000);
 					operator bool() { return ata_init_success; }
 					
+					bool write_cache_flush();
 					zl::expected<data_packet> read(int drive_bit, LBA28 addr, uint16_t num_sectors);
 					bool write(int drive_bit, LBA28 addr, data_packet dat);
 					
 					const atapio_identify_info& get_dev_info() const {
 						return hdd_info;
 					}
-					const err_message& get_error_message() const {
+					const err_message& get_err() const {
 						return err;
 					}
 				private:

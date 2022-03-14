@@ -68,13 +68,23 @@ namespace os {
 				}
 			}
 
+			bool atapio::write_cache_flush() {
+				x86::outb(ports::command, commands::cache_flush);
+				unsigned index = 0;
+				while (index++ < poll_lim)
+					if ((x86::inb(ports::status) & status_info::bsy) == 0) break;
+				if (index >= poll_lim)
+					return false;
+				return true;
+			}
+
 			// TODO: fix memory leak resulting from data_packet... maybe add a destructor?
 			// num_sectors -> number of 512 byte sectors to read
 			zl::expected<data_packet> atapio::read(int drive_bit, LBA28 addr, uint16_t num_sectors) {
 				zl::assert(ata_init_success, "[os::driv::ata::atapio::read(int, LBA28, uint16_t) error] -> ATA failed to initialize!");
 				
 				uint16_t num_read = num_sectors * 256;
-				data_packet packet = { new uint16_t[num_read](), num_read };
+				data_packet packet = { new uint16_t[num_read]{}, num_read * sizeof(uint16_t) };
 
 				x86::outb(ports::sec_count, num_sectors / 256);
 				x86::outb(ports::lba_low, addr);
@@ -88,21 +98,23 @@ namespace os {
 				while (poll_index++ < poll_lim) {
 					uint8_t status = x86::inb(ports::status);
 					// (Bit 3 is not 0 and Bit 7 is 0) or (Bit 0/5 is 1)
-					if ((status & status_info::drq) != 0 && (status & status_info::bsy) == 0) break;
+					if ((status & status_info::bsy) == 0 && (status & status_info::drq) != 0) break;
 				}
-				if (poll_index >= poll_lim)
+				if (poll_index >= poll_lim) {
+					delete[] packet.data;
 					return {{nullptr, 0}, "[os::driv::ata::atapio::read() error] -> unable to read from ATA bus within polling limit!", -1};
-				for (size_t i = 0; i < packet.size; i++)
+				}
+				for (size_t i = 0; i < packet.bytes / sizeof(uint16_t); i++)
 					packet.data[i] = x86::inw(ports::data);
 
 				return packet;
 			}
 			bool atapio::write(int drive_bit, LBA28 addr, data_packet dat) {
-				zl::assert(ata_init_success, "[os::driv::ata::atapio::read(int, LBA28, uint16_t) error] -> ATA failed to initialize!");
+				zl::assert(ata_init_success, "[os::driv::ata::atapio::write(int, LBA28, data_packet) error] -> ATA failed to initialize!");
 				
 				if (!dat) return false;
 
-				x86::outb(ports::sec_count, (dat.size / 256) / 256);
+				x86::outb(ports::sec_count, (dat.bytes / 512) / 256);
 				x86::outb(ports::lba_low, addr);
 				x86::outb(ports::lba_mid, addr >> 8);
 				x86::outb(ports::lba_high, addr >> 16);
@@ -114,14 +126,14 @@ namespace os {
 				while (poll_index++ < poll_lim) {
 					uint8_t status = x86::inb(ports::status);
 					// (Bit 3 is not 0 and Bit 7 is 0) or (Bit 0/5 is 1)
-					if ((status & status_info::drq) != 0 && (status & status_info::bsy) == 0) break;
+					if ((status & status_info::bsy) == 0 && (status & status_info::drq) != 0) break;
 				}
 				if (poll_index >= poll_lim)
 					return false;
-				for (size_t i = 0; i < dat.size; i++)
+				for (size_t i = 0; i < dat.bytes / sizeof(uint16_t); i++)
 					x86::outw(ports::data, dat.data[i]);
 
-				return true;		
+				return write_cache_flush();		
 			}
 		}
 	}

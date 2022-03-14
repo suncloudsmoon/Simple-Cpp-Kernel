@@ -17,42 +17,33 @@
  * SOFTWARE.
  */
 
-#ifndef LIB_UNIQUE_PTR
-#define LIB_UNIQUE_PTR
+#include <kernel/fs.hpp>
 
-namespace zl {
-	template<typename T>
-	class unique_ptr {
-		public:
-			unique_ptr() = default;
-			explicit unique_ptr(T* init) : ptr(init) {}
-			unique_ptr(const unique_ptr &other) = delete;
-			unique_ptr(unique_ptr &&other) noexcept {
-				ptr = other.ptr;
-				other.ptr = nullptr;
+namespace os {
+	namespace fs {
+		cactus_fs::cactus_fs(const zl::shared_ptr<os::driv::ata::atapio> &driv, LBA28 start_loc) 
+							: hdd_driv(driv) {
+			if (start_loc > hdd_driv->get_dev_info().max_sector_count) {
+				is_usable = false;
+				return;
 			}
-			~unique_ptr() { delete ptr; }
-			unique_ptr& operator=(const unique_ptr &other) = delete;
-			unique_ptr& operator=(unique_ptr &&other) {
-				delete ptr;
-				ptr = other.ptr;
-				other.ptr = nullptr;
-				return *this;
-			}
-			operator bool() { return ptr; }
+			start_sector = start_loc;
+		}
 
-			T* get_ptr() { return ptr; }
-			T& operator*() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator*() error] -> dereferencing a null pointer!");
-				return *get_ptr();
+		bool cactus_fs::is_formatted() {
+			if (!hdd_driv) return false;
+
+			if (auto res = hdd_driv->read(os::driv::ata::drive_bit::master_bit, start_sector, 1)) {
+				char *str = reinterpret_cast<char*>((*res).data);
+				delete[] (*res).data;
+			} else {
+				return false;
 			}
-			T* operator->() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator->() error] -> pointer is null!");
-				return get_ptr();
-			}
-		private:
-			T *ptr = nullptr;
-	};
+			return true; 
+		}
+		void cactus_fs::format() {
+
+		}
+
+	}
 }
-
-#endif /* LIB_UNIQUE_PTR */

@@ -17,42 +17,40 @@
  * SOFTWARE.
  */
 
-#ifndef LIB_UNIQUE_PTR
-#define LIB_UNIQUE_PTR
+#ifndef KERNEL_FS_HPP
+#define KERNEL_FS_HPP
 
-namespace zl {
-	template<typename T>
-	class unique_ptr {
-		public:
-			unique_ptr() = default;
-			explicit unique_ptr(T* init) : ptr(init) {}
-			unique_ptr(const unique_ptr &other) = delete;
-			unique_ptr(unique_ptr &&other) noexcept {
-				ptr = other.ptr;
-				other.ptr = nullptr;
-			}
-			~unique_ptr() { delete ptr; }
-			unique_ptr& operator=(const unique_ptr &other) = delete;
-			unique_ptr& operator=(unique_ptr &&other) {
-				delete ptr;
-				ptr = other.ptr;
-				other.ptr = nullptr;
-				return *this;
-			}
-			operator bool() { return ptr; }
+#include <stdint.h>
 
-			T* get_ptr() { return ptr; }
-			T& operator*() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator*() error] -> dereferencing a null pointer!");
-				return *get_ptr();
-			}
-			T* operator->() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator->() error] -> pointer is null!");
-				return get_ptr();
-			}
+#include <lib/shared_ptr.hpp>
+
+#include <drivers/ata.hpp>
+
+namespace os {
+	namespace fs {
+		using LBA28 = os::driv::ata::LBA28;
+		constexpr const char *fs_name = "cactus_fs";
+		struct file_info {
+			char file_name[59];
+			uint8_t type;
+			int32_t file_loc;
+			int32_t next_dat_loc;
+		};
+		struct file_data {
+			int32_t next_dat_loc;
+			uint16_t dat[254];
+		};
+		class cactus_fs {
+			cactus_fs(const zl::shared_ptr<os::driv::ata::atapio> &driv, LBA28 start_loc = 195);
+			operator bool() const { return is_usable; }
+			bool is_formatted();
+			void format();
 		private:
-			T *ptr = nullptr;
-	};
+			zl::shared_ptr<os::driv::ata::atapio> hdd_driv;
+			LBA28 start_sector;
+			bool is_usable = true;
+		};
+	}
 }
 
-#endif /* LIB_UNIQUE_PTR */
+#endif /* KERNEL_FS_HPP */

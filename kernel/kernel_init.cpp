@@ -30,6 +30,7 @@
 // Unit testing
 #include <test/test_zstring.hpp>
 #include <lib/zmath.hpp>
+#include <lib/shared_ptr.hpp>
 
 namespace {
 	void config_os() {
@@ -44,19 +45,26 @@ extern "C" void main() {
 
 	os::driv::ata::atapio hdd;
 	if (hdd) {
-		os::driv::ata::data_packet packet{new uint16_t[256](), 256};
-		bool write_success = hdd.write(os::driv::ata::drive_bit::master_bit, 0, packet);
+		using LBA28 = os::driv::ata::LBA28;
+		constexpr LBA28 sector_num = 20;
+		
+		uint16_t str[256]{};
+		for (size_t i = 0; i < 256; i++)
+			str[i] = 100;
+		os::driv::ata::data_packet packet{str, sizeof(str)};
+		bool write_success = hdd.write(os::driv::ata::drive_bit::master_bit, sector_num, packet);
 		zl::cout << "Write success: " << write_success << zl::endl;
-		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, 0, 1)) {
-			zl::cout << "Data from hard drive:" << zl::endl;
-			for (size_t i = 0; i < 100; i++)
+		
+		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, sector_num, 1)) {
+			zl::cout << "Data from HDD: " << zl::endl;
+			for (size_t i = 0; i < (*res).bytes / sizeof(uint16_t); i++)
 				zl::cout << (*res).data[i] << ",";
-			zl::cout << zl::endl;
+			zl::cout << zl::endl;	
 			delete[] (*res).data;
 		} else {
 			zl::cerr << "ATA Error: " << res.get_err_message() << zl::endl;
 		}
 	} else {
-		zl::cerr << "Unable to initialize ATA driver!" << zl::endl;
+		zl::cerr << "ATA Error: " << hdd.get_err().str << zl::endl;
 	}
 }
