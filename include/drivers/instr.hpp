@@ -22,26 +22,24 @@
 
 #include <stdint.h>
 
-namespace os {
-	namespace driv {
-		namespace x86 {
-			// General x86 instructions
-			void hlt();
+namespace os::driv {
+	namespace x86 {
+		// General x86 instructions
+		void hlt();
 
-			// I/O operations
-			uint8_t inb(uint16_t port);
-			void outb(uint16_t port, uint8_t dat);
-			
-			uint16_t inw(uint16_t port);
-			void outw(uint16_t port, uint16_t dat);
-		}
-		// FPU stuff
-		namespace x87 {
-			double fsin(double x);
-			double fcos(double x);
-			double fptan(double x);
-			double fprem1(double dividend, double divisor);
-		}
+		// I/O operations
+		uint8_t inb(uint16_t port);
+		void outb(uint16_t port, uint8_t dat);
+		
+		uint16_t inw(uint16_t port);
+		void outw(uint16_t port, uint16_t dat);
+	}
+	// FPU stuff
+	namespace x87 {
+		double fsin(double x);
+		double fcos(double x);
+		double fptan(double x);
+		double fprem1(double dividend, double divisor);
 	}
 }
 
