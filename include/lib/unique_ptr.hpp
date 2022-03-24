@@ -20,12 +20,16 @@
 #ifndef LIB_UNIQUE_PTR
 #define LIB_UNIQUE_PTR
 
+#include <stddef.h>
+
+#include <lib/zassert.hpp>
+#include <lib/zio.hpp>
+
 namespace zl {
 	template<typename T>
 	class unique_ptr {
 		public:
-			unique_ptr() = default;
-			explicit unique_ptr(T* init) : ptr(init) {}
+			explicit unique_ptr(T *pointer = nullptr) : ptr(pointer) {}
 			unique_ptr(const unique_ptr &other) = delete;
 			unique_ptr(unique_ptr &&other) noexcept {
 				ptr = other.ptr;
@@ -33,25 +37,118 @@ namespace zl {
 			}
 			~unique_ptr() { delete ptr; }
 			unique_ptr& operator=(const unique_ptr &other) = delete;
-			unique_ptr& operator=(unique_ptr &&other) {
+			unique_ptr& operator=(unique_ptr &&other) noexcept {
 				delete ptr;
 				ptr = other.ptr;
 				other.ptr = nullptr;
 				return *this;
 			}
-			operator bool() { return ptr; }
-
-			T* get_ptr() { return ptr; }
-			T& operator*() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator*() error] -> dereferencing a null pointer!");
-				return *get_ptr();
+			operator bool() const { return get(); }
+			
+			T* get() const { return ptr; }
+			T* release() {
+				T *temp = ptr;
+				ptr = nullptr;
+				return temp;
 			}
-			T* operator->() {
-				assert(get_ptr(), "[zl::unique_ptr<T>::operator->() error] -> pointer is null!");
-				return get_ptr();
+			void reset(T *pointer = nullptr) {
+				delete ptr;
+				ptr = pointer;
+			}
+			void swap(unique_ptr &other) {
+				T *temp = ptr;
+				ptr = other.ptr;
+				other.ptr = ptr;
+			}
+
+			T& operator*() const {
+				assert(get(), "[zl::unique_ptr<T>::operator*() error] -> trying to derefence a null pointer!");
+				return *get();
+			}
+			T* operator->() const {
+				assert(get(), "[zl::unique_ptr<T>::operator->() error] -> trying to access a null pointer!");
+				return get();
+			}
+			
+			template<typename Second>
+			bool operator==(const unique_ptr<Second> &other) const { return get() == other.get(); }
+			template<typename Second>
+			bool operator!=(const unique_ptr<Second> &other) const { return get() != other.get(); }
+			template<typename Second>
+			bool operator<(const unique_ptr<Second> &other) const { return get() < other.get(); }
+			template<typename Second>
+			bool operator<=(const unique_ptr<Second> &other) const { return get() <= other.get(); }
+			template<typename Second>
+			bool operator>(const unique_ptr<Second> &other) const { return get() > other.get(); }
+			template<typename Second>
+			bool operator>=(const unique_ptr<Second> &other) const { return get() >= other.get(); }
+
+			friend ostream& operator<<(ostream &out, const unique_ptr<T> &pointer) {
+				out << reinterpret_cast<size_t>(pointer.get());
+				return out;
 			}
 		private:
-			T *ptr = nullptr;
+			T *ptr;
+	};
+
+	template<typename T>
+	class unique_ptr<T[]> {
+		public:
+			explicit unique_ptr(T *pointer = nullptr) : ptr(pointer) {}
+			unique_ptr(const unique_ptr &other) = delete;
+			unique_ptr(unique_ptr &&other) noexcept {
+				ptr = other.ptr;
+				other.ptr = nullptr;
+			}
+			~unique_ptr() { delete[] ptr; }
+			unique_ptr& operator=(const unique_ptr &other) = delete;
+			unique_ptr& operator=(unique_ptr &&other) noexcept {
+				delete[] ptr;
+				ptr = other.ptr;
+				other.ptr = nullptr;
+				return *this;
+			}
+			operator bool() const { return get(); }
+			
+			T* get() const { return ptr; }
+			T* release() { 
+				T *temp = ptr;
+				ptr = nullptr;
+				return temp;
+			}
+			void reset(T *pointer = nullptr) {
+				delete[] ptr;
+				ptr = pointer;
+			}
+			void swap(unique_ptr &other) {
+				T *temp = ptr;
+				ptr = other.ptr;
+				other.ptr = ptr;
+			}
+			T& operator[](size_t index) const {
+				assert(get(), "[zl::unique_ptr<T[]>::operator[](size_t) error] -> trying to access an element inside null array!");
+				return get()[index];
+			}
+			
+			template<typename Second>
+			bool operator==(const unique_ptr<Second> &other) const { return get() == other.get(); }
+			template<typename Second>
+			bool operator!=(const unique_ptr<Second> &other) const { return get() != other.get(); }
+			template<typename Second>
+			bool operator<(const unique_ptr<Second> &other) const { return get() < other.get(); }
+			template<typename Second>
+			bool operator<=(const unique_ptr<Second> &other) const { return get() <= other.get(); }
+			template<typename Second>
+			bool operator>(const unique_ptr<Second> &other) const { return get() > other.get(); }
+			template<typename Second>
+			bool operator>=(const unique_ptr<Second> &other) const { return get() >= other.get(); }
+
+			friend ostream& operator<<(ostream &out, const unique_ptr<T[]> &pointer) {
+				out << reinterpret_cast<size_t>(pointer.get());
+				return out;
+			}
+		private:
+			T *ptr;
 	};
 }
 

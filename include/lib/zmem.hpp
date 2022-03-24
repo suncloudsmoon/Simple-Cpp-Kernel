@@ -24,8 +24,10 @@
 #include <stdint.h>
 
 #include <lib/zutil.hpp>
+
 // Other parts of zmem in different files
 #include <lib/unique_ptr.hpp>
+#include <lib/shared_ptr.hpp>
 
 #include <kernel/basic_mem_util.hpp>
 
@@ -47,13 +49,39 @@ namespace zl {
 	 * Can have overlapping memory regions
 	 */
 	template<typename T>
-	inline bool memcpy(T *dest, const T *src, size_t bytes) {
+	inline constexpr bool memcpy(T *dest, const T *src, size_t bytes) {
 		if (!dest || !src || !bytes) return false;
 		for (size_t i = 0; i < bytes / sizeof(T); i++) { dest[i] = src[i]; }
 		return true;
 	}
-	template<>
 	bool memcpy(void *dest, const void *src, size_t bytes);
+
+	template<typename T>
+	inline constexpr bool memset(T *ptr, T val, size_t bytes) {
+		if (!ptr || !bytes) return false;
+		for (size_t i = 0; i < bytes / sizeof(T); i++) { ptr[i] = val; }
+		return true;
+	}
+	namespace {
+		template<typename T, typename CopyType>
+		inline constexpr bool __set_arr__(void *ptr, T val, size_t bytes) {
+			if (!ptr || !bytes) return false;
+			CopyType *type_ptr = reinterpret_cast<CopyType*>(ptr);
+			for (size_t i = 0; i < bytes / sizeof(T); i++) { type_ptr[i] = val; }
+			return true;
+		}
+	}
+	template<typename T>
+	inline constexpr bool memset(void *ptr, T val, size_t bytes) {
+		return (bytes >= sizeof(T)) ? __set_arr__<T>(ptr, val, bytes) : false;
+	}
+
+	template<typename T>
+	inline constexpr bool memcmp(const T *src1, const T *src2, size_t bytes) {
+		if (!src1 || !src2 || !bytes) return false;
+		for (size_t i = 0; i < bytes / sizeof(T); i++) { if (src1[i] != src2[i]) return false; }
+		return true;
+	}
 	
 	inline expected<blk> malloc(size_t size) {
 		return os::mem::alloc(size);

@@ -82,13 +82,13 @@ namespace os::driv::ata {
 		zl::assert(ata_init_success, "[os::driv::ata::atapio::read(int, LBA28, uint16_t) error] -> ATA failed to initialize!");
 		
 		uint16_t num_read = num_sectors * 256;
-		data_packet packet = { new uint16_t[num_read]{}, num_read * sizeof(uint16_t) };
+		data_packet packet{ new uint16_t[num_read]{}, num_read * sizeof(uint16_t) };
 
-		x86::outb(ports::sec_count, num_sectors / 256);
+		x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
+		x86::outb(ports::sec_count, num_sectors);
 		x86::outb(ports::lba_low, addr);
 		x86::outb(ports::lba_mid, addr >> 8);
 		x86::outb(ports::lba_high, addr >> 16);
-		x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
 		x86::outb(ports::command, commands::read_sec);
 
 		// Wait until the device is ready to tranfer data
@@ -112,11 +112,11 @@ namespace os::driv::ata {
 		
 		if (!dat) return false;
 
-		x86::outb(ports::sec_count, dat.bytes / 512);
+		x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
+		x86::outb(ports::sec_count, (dat.bytes / 513) + 1);
 		x86::outb(ports::lba_low, addr);
 		x86::outb(ports::lba_mid, addr >> 8);
 		x86::outb(ports::lba_high, addr >> 16);
-		x86::outb(ports::drive_head_select, drive_type::master_drive | (drive_bit << 4) | ((addr >> 24) & 0xF));
 		x86::outb(ports::command, commands::write_sec);
 
 		// Wait until the device is ready to tranfer data

@@ -21,6 +21,7 @@
 #define LIB_ZIO_HPP
 
 #include <stdint.h>
+#include <stddef.h>
 
 #include <drivers/vga.hpp>
 

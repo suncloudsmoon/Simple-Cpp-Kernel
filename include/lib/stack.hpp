@@ -29,6 +29,9 @@ namespace zl {
 			using growing_array<T>::growing_array;
 			using growing_array<T>::operator=;
 
+			stack(const stack &other) : growing_array<T>(other) {}
+			stack(stack &&other) noexcept : growing_array<T>(other) {}
+
 			inline T& front() {
 				return *growing_array<T>::operator[](growing_array<T>::get_curr_len() - 1);
 			}
@@ -41,11 +44,11 @@ namespace zl {
 			inline bool pop() {
 				return growing_array<T>::remove(growing_array<T>::get_curr_len() - 1); 
 			}
-			inline bool empty() const {
-				return growing_array<T>::get_curr_len() == 0;
-			}
 			inline size_t size() const {
 				return growing_array<T>::get_curr_len();
+			}
+			inline bool empty() const {
+				return !size();
 			}
 	};
 }

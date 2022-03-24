@@ -30,9 +30,7 @@ namespace zl {
 #ifdef DEBUG
 	extern void assert(bool condition, const char *message = "");
 #else
-	inline void assert(bool condition, const char *message = "") {
-		(void) 0;
-	}
+	inline void assert(bool condition, const char *message = "") {}
 #endif	
 }
 

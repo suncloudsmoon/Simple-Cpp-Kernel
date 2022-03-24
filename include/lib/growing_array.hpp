@@ -17,8 +17,8 @@
  * SOFTWARE.
  */
 
-#ifndef LIB_GROWING_ARRAY
-#define LIB_GROWING_ARRAY
+#ifndef LIB_GROWING_ARRAY_HPP
+#define LIB_GROWING_ARRAY_HPP
 
 #include <lib/zmem.hpp>
 #include <lib/zutil.hpp>
@@ -84,7 +84,7 @@ namespace zl {
 					len = other.len;
 				}
 			}
-			growing_array(growing_array &&other) {
+			growing_array(growing_array &&other) noexcept {
 				arr = other.arr;
 				curr_len = other.curr_len;
 				len = other.len;
@@ -100,8 +100,6 @@ namespace zl {
 					free(arr);
 				}
 			}
-			/* Checking if the array allocated through constructor is valid */
-			operator bool() { return arr; }
 			bool operator=(const growing_array &other) {
 				if (auto res = allocate_at_least(other.len)) [[likely]] {
 					if (arr) [[likely]] {
@@ -119,7 +117,7 @@ namespace zl {
 				} 
 				return false;
 			}
-			void operator=(growing_array &&other) {
+			void operator=(growing_array &&other) noexcept {
 				if (arr) [[likely]] {
 					clear();
 					free(arr);
@@ -132,8 +130,12 @@ namespace zl {
 				other.curr_len = 0;
 				other.len = 0;
 			}
+			/* Checking if the array allocated through constructor is valid */
+			operator bool() { return arr; }
 		protected:	
 			unexpected<blk> allocate_at_least(size_t length) {
+				assert(operator bool(), "[zl::growing_array<T>::allocate_at_least(size_t) error] -> object is not initialized properly!");
+
 				if (auto res = malloc(length * sizeof(T*))) [[likely]] {
 					arr = static_cast<T**>((*res).ptr);
 					len = (*res).len;
@@ -143,15 +145,18 @@ namespace zl {
 				}
 			}
 			expected<T*> at(size_t index) {
+				assert(operator bool(), "[zl::growing_array<T>::at(size_t) error] -> object is not initialized properly!");
 				if (index >= len) [[unlikely]]
-					return {nullptr, "at() error -> index is greater than length of array!", -1};
+					return { nullptr, "[zl::growing_array<T>::at(size_t) error] -> index is greater than length of array!", -1 };
 				return arr[index];
 			}
 			T* operator[](size_t index) {
-				zl::assert(index < len, "[growing_array::operator[] error] -> index out of bounds!");
+				assert(operator bool(), "[zl::growing_array<T>::operator[](size_t) error] -> object is not initialized properly!");
+				zl::assert(index < len, "[zl::growing_array<T>::operator[](size_t) error] -> index out of bounds!");
 				return arr[index];
 			}
 			bool add(size_t index, const T &item) {
+				assert(operator bool(), "[zl::growing_array<T>::add(size_t, const T&) error] -> object is not initialized properly!");
 				T *new_obj = new T(item);
 				if (!add(index, new_obj)) {
 					delete new_obj;
@@ -160,6 +165,7 @@ namespace zl {
 				return true;
 			}
 			bool add(size_t index, T &&item) {
+				assert(operator bool(), "[zl::growing_array<T>::add(size_t, T&&) error] -> object is not initialized properly!");
 				T *new_obj = new T(item);
 				if (!add(index, new_obj)) {
 					delete new_obj;
@@ -169,6 +175,7 @@ namespace zl {
 			}
 
 			bool add(size_t index, T *item) {
+				assert(operator bool(), "[zl::growing_array<T>::add(size_t, T*) error] -> object is not initialized properly!");
 				if (!auto_realloc(1))
 					return false;
 				if (!memcpy(arr[index + 1], arr[index], curr_len))
@@ -179,6 +186,7 @@ namespace zl {
 			}
 
 			bool add(const T &item) {
+				assert(operator bool(), "[zl::growing_array<T>::add(const T&) error] -> object is not initialized properly!");
 				T *new_item = new T(item);
 				if (!add(new_item)) [[unlikely]] {
 					delete new_item;
@@ -187,6 +195,7 @@ namespace zl {
 				return true;
 			}
 			bool add(T &&item) {
+				assert(operator bool(), "[zl::growing_array<T>::add(T&&) error] -> object is not initialized properly!");
 				T *new_item = new T(item);
 				if (!add(new_item)) [[unlikely]] {
 					delete new_item;
@@ -195,13 +204,15 @@ namespace zl {
 				return true;
 			}
 			bool add(T *item) {
-				zl::assert(item != nullptr, "[growing_array::add(T*) error] -> item pointer arg is null!");
+				assert(operator bool(), "[zl::growing_array<T>::add(T*) error] -> object is not initialized properly!");
+				assert(item != nullptr, "[zl::growing_array<T>::add(T*) error] -> item pointer arg is null!");
 				if (!auto_realloc(1)) [[unlikely]]
 					return false;
 				arr[curr_len++] = item;
 				return true;
 			}
 			bool remove(size_t index) {
+				assert(operator bool(), "[zl::growing_array<T>::remove(size_t) error] -> object is not initialized properly!");
 				if (index >= len) [[unlikely]]
 					return false;
 				delete arr[index];
@@ -211,13 +222,14 @@ namespace zl {
 				return true;
 			}
 			void clear() {
-				zl::assert(arr != nullptr, "[growing_array::clear() error] -> string's char array is null!");
+				assert(operator bool(), "[zl::growing_array<T>::clear() error] -> object is not initialized properly!");
+				zl::assert(arr != nullptr, "[zl::growing_array<T>::clear() error] -> string's char array is null!");
 				for (size_t i = 0; i < len; i++)
 					delete arr[i];
 				curr_len = 0;				
 			}
 
-			T** get_raw_arr() {
+			T** get_raw_arr() const {
 				return arr;
 			}
 			size_t get_curr_len() const {
@@ -237,6 +249,7 @@ namespace zl {
 			}
 		private:
 			unexpected<blk> auto_realloc(size_t add_num) {
+			assert(operator bool(), "[zl::growing_array<T>::auto_realloc(size_t) error] -> object is not initialized properly!");
 				if (curr_len + add_num + 1 >= len) {
 					if (auto res = realloc(arr, curr_len + add_num + 1)) [[likely]] {
 						arr = static_cast<T**>((*res).ptr);
@@ -254,4 +267,4 @@ namespace zl {
 	};
 }
 
-#endif /* LIB_GROWING_ARRAY */
+#endif /* LIB_GROWING_ARRAY_HPP */

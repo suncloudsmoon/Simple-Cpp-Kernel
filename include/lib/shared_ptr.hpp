@@ -28,13 +28,13 @@ namespace zl {
 	template<typename T>
 	class shared_ptr {
 		public:
-			shared_ptr() = default;
-			explicit shared_ptr(T *pointer) : ptr(pointer) {}
+			shared_ptr() : shared_ptr(nullptr) {}
+			explicit shared_ptr(T *pointer) : ptr(pointer), counter(new size_t{}) {}
 			shared_ptr(const shared_ptr &other) {
 				if (!other.counter) { ptr = nullptr; counter = nullptr; return; }
 				ptr = other.ptr;
 				counter = other.counter;
-				*(counter)++;
+				(*counter)++;
 			}
 			shared_ptr(shared_ptr &&other) noexcept {
 				ptr = other.ptr;
@@ -48,8 +48,9 @@ namespace zl {
 				if (!(*counter)) {
 					delete ptr;
 					delete counter;
-				} 
-				(*counter)--;
+				} else {
+					(*counter)--;
+				}
 			}
 			shared_ptr& operator=(const shared_ptr &other) {
 				if (!other.counter) {
@@ -60,7 +61,7 @@ namespace zl {
 				}
 				ptr = other.ptr;
 				counter = other.counter;
-				*(counter)++;
+				(*counter)++;
 
 				return *this;
 			}
@@ -87,9 +88,13 @@ namespace zl {
 				assert(get_ptr(), "[zl::shared_ptr<T>::operator->() error] -> pointer is null!");
 				return get_ptr();
 			}
+			T& operator[](size_t index) const {
+				assert(get_ptr(), "[zl::shared_ptr<T>::operator[]() error] -> pointer is null!");
+				return get_ptr()[index];
+			}
 		private:
-			T *ptr = nullptr;
-			size_t *counter = new size_t{};
+			T *ptr;
+			size_t *counter;
 	};
 }
 

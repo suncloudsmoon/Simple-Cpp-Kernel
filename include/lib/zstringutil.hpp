@@ -20,55 +20,56 @@
 #ifndef LIB_ZSTRINGUTIL_HPP
 #define LIB_ZSTRINGUTIL_HPP
 
-#include <lib/zstring.hpp>
+#include <lib/zmem.hpp>
 
 namespace zl {
 	struct strdup_info {
-		strdup_info(char *buf_str = nullptr, size_t string_len = 0, size_t buffer_length = 0) : 
+		constexpr strdup_info(char *buf_str = nullptr, size_t string_len = 0, size_t buffer_length = 0) : 
 			buf(buf_str), str_len(string_len), buf_len(buffer_length) {}
+		constexpr operator bool() { return buf; }
 		char *buf;
 		size_t str_len;
 		size_t buf_len;
-		operator bool() { return buf; }
 	};
+	strdup_info strdup(const char *src);
 	/*
 	 * Length excluding null terminator
 	 */
 	inline constexpr size_t strlen(const char *str) {
 		if (!str) return 0;
-		size_t index{0};
+		size_t index = 0;
 		while (str[index++]);
 		return index - 1;
 	}
-	strdup_info strdup(const char *src);
-	bool strncat(char *dest, const char *src, size_t len);
-	bool strncpy(char *dest, const char *src, size_t len);
-	bool strequal(const char *str1, const char *str2);
+	inline constexpr bool strncat(char *dest, const char *src, size_t len) {
+		if (!dest || !src || !len) 
+			return false;
+		size_t dest_len = strlen(dest);
+		if (!memcpy(dest + dest_len, src, len))
+			return false;
+		dest[dest_len + len] = '\0'; 
+		return true;	
+	}
+	inline constexpr bool strncpy(char *dest, const char *src, size_t len) {
+		if (!dest || !src || !len)
+			return false;
+		if (!memcpy(dest, src, len))
+			return false;
+		dest[len] = '\0';
+		return true;	
+	}
+	inline constexpr bool strequal(const char *str1, const char *str2) {
+		if (!str1 || !str2)
+			return false;
 
-	template<typename T>
-	inline expected<zl::string> itoa(T num) {
-		stack<char> st;
-		if (st) {
-			auto num_iter = num;
-			while (num_iter) {
-				char last = (num_iter % 10) + '0';
-				st.push(last);
-				num_iter /= 10;
-			}
-			if (num < 0)
-				st.push('-');
-			
-			string res;
-			while (!st.empty()) {
-				char c = st.front();
-				res += c;
-				st.pop();
-			}
-			return res;
-		} else {
-			return {nullptr, "[zl::itoa() error] -> zl::stack::stack() constructor error!"};
+		size_t index = 0;
+		char a, b;
+		while ((a = str1[index]) && (b = str2[index])) {
+			if (str1[index] != str2[index])
+				return false;
+			index++;
 		}
-		return {nullptr, "[zl::itoa() error] -> unknown error!"};
+		return (str1[index] == '\0') && (str2[index] == '\0');
 	}
 }
 

@@ -29,7 +29,7 @@ boot:
 read_multiple_times:
 	inc eax
 	push eax
-	read_hdd 0x1000,20,0,0,2
+	read_hdd 0x1000,40,0,0,2
 	pop eax
 	cmp eax, 3
 	jle read_multiple_times
@@ -61,7 +61,8 @@ protected_mode:
 	mov fs, ax
 	mov gs, ax
 
-	; New memory location for the kernel to start
+	; This is the new "stack" (but grows downward) location that our "big" kernel uses...
+	; This is to ensure that we do not run out of stack memory
 	mov ebp, 0x90000
 	mov esp, ebp
 

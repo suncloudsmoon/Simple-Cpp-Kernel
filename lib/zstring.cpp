@@ -18,7 +18,6 @@
  */
 
 #include <lib/zstring.hpp>
-#include <lib/zassert.hpp>
 #include <lib/zstringutil.hpp>
 
 namespace zl {
@@ -31,7 +30,8 @@ namespace zl {
 			len = (*res).len;
 		} else {
 			free((*res).ptr);
-			zl::assert(false, "[zl::string::string error] -> unable to allocate memory for string!");
+			//zl::cout << "malloc message: " << res.get_err_message() << zl::endl;
+			zl::assert(false, "[zl::string::string(size_t) error] -> unable to allocate memory for string!");
 		}
 	}
 	string::string(const char *src) {
@@ -47,7 +47,7 @@ namespace zl {
 			len = info.buf_len;
 		}
 	}
-	string::string(string &&other) {
+	string::string(string &&other) noexcept {
 		data = other.data;
 		curr_index = other.curr_index;
 		len = other.len;
@@ -91,7 +91,8 @@ namespace zl {
 		return strequal(c_str(), other);
 	}
 	bool string::equals(const string &other) const {
-		return strequal(c_str(), other.c_str());
+		if (other.length() != length()) return false;
+		return memcmp(c_str(), other.c_str(), other.length());
 	}
 
 	bool string::set(const char *other) {
@@ -126,14 +127,37 @@ namespace zl {
 	}
 
 	string string::substr(size_t start, size_t end) {
+		if (end == npos) end = length();
 		string new_str;
 		for (size_t i = start; i < end; i++)
 			new_str += data[i];
 		return new_str;
 	}
 
-	expected<char> string::at(size_t index) {
-		if (index >= len) return {data[0], "[zl::string::at() error] -> index out of bounds!", -1};
+	 vector<string> string::split(string_view arg) {
+		vector<string> list;
+		size_t prev_index = 0;
+		size_t index = 0;
+		while ((index = find(arg, index)) != npos) {
+			list.push_back(substr(prev_index, index));
+			prev_index = index += arg.length(); 
+		}
+		if (prev_index < length())
+			list.push_back(substr(prev_index));
+		return list;
+	}
+
+	size_t string::find(string_view arg, size_t begin) const {
+		if (!arg) return npos;
+		size_t i = (begin == npos) ? 0 : begin;
+		for (; i < length(); i++)
+			if (zl::memcmp(c_str() + i, arg.data(), arg.length()))
+				return i;
+		return npos;
+	}
+
+	expected<char&> string::at(size_t index) const {
+		if (index >= len) return { data[0], "[zl::string::at(size_t) error] -> index out of bounds!", -1 };
 		return data[index];
 	}
 

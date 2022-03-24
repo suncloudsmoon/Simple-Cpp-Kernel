@@ -26,8 +26,6 @@ namespace zl {
 		public:
 			optional() = default;
 			explicit optional(T &&a) : data(a), is_init(true) {}
-			optional(const optional &other) : data(other.data), is_init(other.is_init) {}
-			optional(optional &&other) : data(other.data), is_init(other.is_init) {}
 			operator bool() { return is_init; }
 			T& operator*() { return data; }
 		private:

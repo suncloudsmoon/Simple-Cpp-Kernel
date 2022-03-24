@@ -25,6 +25,7 @@
 
 #include <lib/zutil.hpp>
 #include <lib/zstring.hpp>
+#include <lib/unique_ptr.hpp>
 
 namespace os::driv::ata {
 	using LBA28 = uint32_t;
@@ -69,8 +70,8 @@ namespace os::driv::ata {
 	// Got info from https://wiki.osdev.org/PCI_IDE_Controller#Read.2FWrite_From_ATA_Drive
 	namespace drive_bit {
 		enum {
-			master_bit = 0,
-			slave_bit = 1
+			master = 0,
+			slave = 1
 		};
 	}
 

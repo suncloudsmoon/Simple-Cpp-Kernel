@@ -47,8 +47,7 @@ namespace os {
 				if (curr_item) {
 					curr_item->ptr = ptr;
 					size_t res;
-					curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
-					curr_item = list->next;
+					curr_item = curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
 					len++;
 					return true;
 				}
@@ -59,8 +58,7 @@ namespace os {
 				if (curr_item) {
 					curr_item->ptr = ptr;
 					size_t res;
-					curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
-					curr_item = list->next;
+					curr_item = curr_item->next = static_cast<alloc_info*>(simple_alloc(sizeof(alloc_info), res));
 					len++;
 					return true;
 				}

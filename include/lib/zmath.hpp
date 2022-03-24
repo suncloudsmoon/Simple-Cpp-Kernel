@@ -44,6 +44,12 @@ namespace zl {
 		double ieee_remainder = remainder(dividend, divisor);
 		return (ieee_remainder < 0) ? (divisor + ieee_remainder) : ieee_remainder;
 	}
+	template<typename T>
+	inline T pow(T base, T power) {
+		T res = 1;
+		for (T i = 0; i < power; i++) { res *= base; }
+		return res;
+	}
 }
 
 #endif /* LIB_ZMATH_HPP */

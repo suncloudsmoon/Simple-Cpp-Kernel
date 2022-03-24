@@ -18,7 +18,6 @@
  */
 
 #include <lib/zstringutil.hpp>
-#include <lib/zmem.hpp>
 
 namespace zl {
 	strdup_info strdup(const char *src) {
@@ -31,40 +30,7 @@ namespace zl {
 				return {};
 			}
 			return {static_cast<char*>((*res).ptr), src_len, (*res).len};
-		} else {
-			return {};
-		}	
-	}
-
-	bool strncat(char *dest, const char *src, size_t len) {
-		if (!dest || !src || !len) 
-			return false;
-		size_t dest_len = strlen(dest);
-		if (!memcpy(dest + dest_len, src, len))
-			return false;
-		dest[dest_len + len] = '\0'; 
-		return true;	
-	}
-
-	bool strncpy(char *dest, const char *src, size_t len) {
-		if (!dest || !src || !len)
-			return false;
-		if (!memcpy(dest, src, len))
-			return false;
-		dest[len] = '\0';
-		return true;	
-	}
-
-	bool strequal(const char *str1, const char *str2) {
-		if (!str1 || !str2)
-			return false;
-		size_t index{0};
-		char a, b;
-		while ((a = str1[index]) && (b = str2[index])) {
-			if (a != b)
-				return false;
-			index++;
 		}
-		return str1[index] == '\0';
+		return {};	
 	}
 }

@@ -21,15 +21,18 @@ $(BIN_DIR)/kernel_entry.o: boot/kernel_entry.asm
 	nasm -f elf32 $^ -o $@
 
 $(BIN_DIR)/%.okernel: kernel/%.cpp
-	$(CC) -O2 -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
+	$(CC) -O2 -flto -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
 
 $(BIN_DIR)/%.odriver: drivers/%.cpp
-	$(CC) -O2 -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
+	$(CC) -O2 -flto -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
 
 $(BIN_DIR)/%.olib: lib/%.cpp
-	$(CC) -O2 -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
+	$(CC) -O2 -flto -Iinclude -ffreestanding -lgcc -nostdlib -fno-rtti -fno-exceptions -m32 -std=c++20 -c -o $@ $^
 
-$(BIN_DIR)/kernel.bin: $(ALL_OBJS)
+$(BIN_DIR)/kernel.elf: $(ALL_OBJS)
+	$(LD) -flto -o $@ -Ttext=0x1000 $^
+
+$(BIN_DIR)/kernel.bin: $(BIN_DIR)/kernel.elf
 	$(LD) -o $@ -Ttext=0x1000 $^ --oformat=binary
 
 clean:

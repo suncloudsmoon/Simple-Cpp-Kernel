@@ -1,0 +1,4 @@
+#ifndef LIB_ZALGORITHM_HPP
+#define LIB_ZALGORITHM_HPP
+
+#endif /* LIB_ZALGORITHM_HPP */

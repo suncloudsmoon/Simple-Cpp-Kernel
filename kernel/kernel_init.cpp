@@ -25,7 +25,7 @@
 
 // OS stuff
 #include <kernel/basic_io.hpp>
-#include <drivers/ata.hpp>
+#include <kernel/fs.hpp>
 
 // Unit testing
 #include <test/test_zstring.hpp>
@@ -41,30 +41,31 @@ namespace {
 }
 
 extern "C" void main() {
+	using namespace os::driv::ata;
 	config_os();
 
-	os::driv::ata::atapio hdd;
-	if (hdd) {
-		using LBA28 = os::driv::ata::LBA28;
-		constexpr LBA28 sector_num = 20;
-		
-		uint16_t str[256]{};
-		for (size_t i = 0; i < 256; i++)
-			str[i] = 100;
-		os::driv::ata::data_packet packet{str, sizeof(str)};
-		bool write_success = hdd.write(os::driv::ata::drive_bit::master_bit, sector_num, packet);
-		zl::cout << "Write success: " << write_success << zl::endl;
-		
-		if (auto res = hdd.read(os::driv::ata::drive_bit::master_bit, sector_num, 1)) {
-			zl::cout << "Data from HDD: " << zl::endl;
-			for (size_t i = 0; i < (*res).bytes / sizeof(uint16_t); i++)
-				zl::cout << (*res).data[i] << ",";
-			zl::cout << zl::endl;	
-			delete[] (*res).data;
-		} else {
-			zl::cerr << "ATA Error: " << res.get_err_message() << zl::endl;
-		}
+	zl::cout << "Pointer #1: " << zl::unique_ptr<int[]>{ new int[5]{} } << zl::endl;
+	zl::cout << "Pointer #2: " << zl::unique_ptr<int[]>{ new int[5]{} } << zl::endl;
+	zl::cout << "Pointer #3: " << zl::unique_ptr<int[]>{ new int[5]{} } << zl::endl;
+	
+	zl::cout << "String equals: " << (zl::string("hello") == zl::string("hello")) << zl::endl;
+	// String split testing
+	zl::string a = "hellowowhiwow";
+	// auto loc = a.find("wow");
+	// zl::cout << "Loc is " << loc << zl::endl;
+	auto res = a.split("wow");
+	for (auto ele : res) {
+		zl::cout << ele << ",";
+	}
+	zl::cout << zl::endl;
+	
+	zl::shared_ptr<atapio> atapio_ptr{ new atapio{} };
+	if (atapio_ptr->operator bool()) {
+		os::fs::cactus_fs files{ atapio_ptr };
+		zl::cout << "----------" << "Filesystem log" << "----------\n";
+		zl::cout << "Ata init success: " << files << zl::endl;
+		zl::cout << "----------" << "End of filesystem log" << "----------\n";
 	} else {
-		zl::cerr << "ATA Error: " << hdd.get_err().str << zl::endl;
+		zl::cerr << "Failed to initialize ata driver!" << zl::endl;
 	}
 }
